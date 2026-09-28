@@ -4,6 +4,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<meta name="referrer" content="strict-origin-when-cross-origin"/>
 <title>📦 Creador de Descripciones Largas</title>
 <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
 <script>
@@ -29,7 +30,7 @@ function flashDownloadOk() {
 
 
 // === URL remota OVERRIDE (opcional). Si está definida y accesible, se usa primero.
-const PLANTILLA_REMOTE_URL = "https://catalogo2025.github.io/consultor-para-pruebas/assets/Plantilla_Descripciones.xlsx";
+const PLANTILLA_REMOTE_URL = "";
 
 
 
@@ -76,9 +77,6 @@ async function downloadTemplate() {
     if (ok0) return;
   }
 
-  const absUrl = "https://catalogo2025.github.io/consultor-para-pruebas/assets/" + filename + "?v=" + Date.now();
-  if (await tryFetch(absUrl)) return;
-
   const relUrl = new URL("assets/" + filename + "?v=" + Date.now(), window.location.href).href;
   if (await tryFetch(relUrl)) return;
 
@@ -114,8 +112,9 @@ window.onerror=function(m,s,l,c,e){alert('⚠️ Error JS '+m+' ['+l+':'+c+']');
 
 function cleanForCSV(html) {
   if (html == null) return '';
-  // Reemplazar comillas dobles por entidad HTML para no romper CSV con ';' como separador
-  return String(html).replace(/"/g, '&quot;');
+  // La salida actual se genera como XLSX, por lo que no se deben convertir las comillas
+  // HTML a &quot;. XLSX conserva el texto correctamente y Easy necesita comillas reales.
+  return String(html);
 }
 
 function formatDescripcionHTML(textoPlano) {
@@ -196,7 +195,7 @@ function cleanYoutubeUrl(url) {
 
     // Permitir también que venga solo el ID del video.
     if (/^[A-Za-z0-9_-]{11}$/.test(raw)) {
-        return `https://www.youtube-nocookie.com/embed/${raw}`;
+        return `https://www.youtube.com/embed/${raw}?playsinline=1&origin=https%3A%2F%2Fwww.easy.cl`;
     }
 
     let u;
@@ -217,20 +216,23 @@ function cleanYoutubeUrl(url) {
         } else {
             const parts = u.pathname.split('/').filter(Boolean);
             const type = parts[0] || '';
-
-            // Soporta /embed/ID, /shorts/ID, /live/ID
             if (['embed', 'shorts', 'live'].includes(type)) {
                 videoId = parts[1] || '';
             }
         }
     }
 
-    // Validar un ID de YouTube estándar.
     videoId = String(videoId).trim().replace(/[^A-Za-z0-9_-]/g, '');
     if (!/^[A-Za-z0-9_-]{11}$/.test(videoId)) return '';
 
-    // youtube-nocookie funciona mejor para embebidos y evita cargar la página normal de YouTube.
-    return `https://www.youtube-nocookie.com/embed/${videoId}`;
+    const base = `https://www.youtube.com/embed/${videoId}`;
+    return `${base}?playsinline=1&origin=https%3A%2F%2Fwww.easy.cl`;
+}
+
+function buildYoutubePreviewHtml(url) {
+    const embedUrl = cleanYoutubeUrl(url);
+    if (!embedUrl) return '';
+    return `<div style='height:16px;line-height:0;font-size:0;clear:both;'>&nbsp;</div><div class='easy-video-responsive' style='position:relative;width:100%;max-width:100%;aspect-ratio:16 / 9;height:auto;box-sizing:border-box;margin:0;border-radius:12px;overflow:hidden;background:#000;clear:both;'><iframe src='${embedUrl}' title='Video YouTube' width='560' height='315' style='position:absolute;inset:0;width:100%;height:100%;max-width:100%;border:0;display:block;margin:0;padding:0;' referrerpolicy='strict-origin-when-cross-origin' allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share' allowfullscreen></iframe></div>`;
 }
 
 
@@ -578,7 +580,73 @@ img { max-width: 100%; height: auto; }
 }
 </style>
 
+
+<style>
+/* === Semáforo de calidad Easy === */
+.quality-panel{display:none;margin:20px;background:#fff;border:1px solid #dfe5ec;border-radius:9px;padding:18px 20px;box-shadow:0 1px 4px rgba(16,24,40,.05)}
+.quality-head{display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap}.quality-head h2{margin:0;border:0;padding:0}.quality-summary{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.quality-pill{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border:1px solid #e5e7eb;border-radius:16px;background:#f8fafc;font-size:12px;font-weight:700;color:#344054}.quality-dot{width:9px;height:9px;border-radius:50%;display:inline-block}.quality-green{background:#22a06b}.quality-yellow{background:#f5a524}.quality-red{background:#d92d20}.quality-overall{display:inline-flex;align-items:center;gap:7px;padding:7px 11px;border-radius:7px;background:#f8fafc;border:1px solid #e5e7eb;font-size:12.5px;font-weight:700}.quality-details{margin-top:12px;border-top:1px solid #eef1f4;padding-top:10px}.quality-details summary{cursor:pointer;font-size:12.5px;font-weight:700;color:#344054}.quality-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:10px}.quality-sku{border:1px solid #e5e9ef;border-radius:7px;padding:9px 10px;background:#fff;min-width:0}.quality-sku-top{display:flex;justify-content:space-between;gap:8px;align-items:center}.quality-status{font-size:11px;font-weight:700;white-space:nowrap}.quality-reasons{margin-top:6px;font-size:11.5px;color:#667085;line-height:1.45}.quality-reasons div+div{margin-top:3px}@media(max-width:1100px){.quality-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:700px){.quality-grid{grid-template-columns:1fr}}
+</style>
+
+<style>
+/* === Sugerencias Easy: mismo lenguaje visual que Paris === */
+.easy-sug-section{border:1px solid #dfe5ec;border-radius:9px;overflow:hidden;margin:12px 0;background:#fff;box-shadow:0 1px 4px rgba(16,24,40,.04)}
+.easy-sug-head{display:grid;grid-template-columns:minmax(0,1fr) max-content;align-items:center;gap:10px;padding:10px 13px;background:#f5f7fa;color:#24364b;box-sizing:border-box}
+.easy-sug-toggle{min-width:0;width:100%;display:flex;justify-content:space-between;align-items:center;gap:12px;text-align:left;border:0;background:transparent;color:#24364b;padding:0;margin:0;box-shadow:none;font-size:13px;font-weight:700}
+.easy-sug-toggle:hover{transform:none;box-shadow:none;background:transparent}
+.easy-sug-head-actions{display:flex;align-items:center;gap:8px;white-space:nowrap}
+.easy-sug-head-actions button,.easy-sku-approve{padding:4px 8px!important;margin:0!important;font-size:11px!important;border-radius:4px!important;box-shadow:none!important;background:#173f5f!important}
+.easy-sug-body{padding:10px 12px 12px}
+.easy-sku-group{border:1px solid #e6eaf0;border-radius:7px;margin:10px 0;background:#fbfcfd;overflow:hidden}
+.easy-sku-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 10px;background:#eef2f6;border-bottom:1px solid #e1e6ec;flex-wrap:wrap}
+.easy-sku-title{font-size:12.5px;font-weight:700;color:#24364b}
+.easy-sku-body{padding:9px}
+.easy-sug-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.easy-sug-card{border:1px solid #e5e9ef;border-radius:7px;padding:9px 10px;background:#fff;display:flex;flex-direction:column;min-width:0;min-height:104px}
+.easy-sug-select{display:flex;align-items:flex-start;gap:7px;min-width:0}
+.easy-sug-check{width:15px;height:15px;margin:1px 0 0;accent-color:#173f5f;cursor:pointer;flex:0 0 auto}
+.easy-sug-value{font-size:12px;font-weight:700;color:#24364b;line-height:1.3;overflow-wrap:anywhere}
+.easy-sug-source{font-size:10.5px;color:#667085;margin-top:6px;line-height:1.3;overflow-wrap:anywhere}
+.easy-sug-actions{display:flex;gap:6px;margin-top:auto;padding-top:8px}
+.easy-sug-action{width:30px!important;height:30px!important;min-width:30px!important;padding:0!important;margin:0!important;border-radius:6px!important;box-shadow:none!important;font-size:17px!important;font-weight:800!important;line-height:1!important;display:inline-flex!important;align-items:center!important;justify-content:center!important}
+.easy-sug-action:hover{transform:none!important;box-shadow:none!important}
+.easy-sug-ok{background:#ecfdf3!important;color:#067647!important;border:1px solid #abefc6!important}
+.easy-sug-no{background:#fef3f2!important;color:#b42318!important;border:1px solid #fecdca!important}
+.easy-sug-status{font-size:11px;color:#667085;margin-top:auto;padding-top:8px}
+.easy-sug-toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:8px 0 12px}
+.easy-sug-toolbar button{padding:7px 10px;margin:0;font-size:12px;box-shadow:none}
+.export-count{font-size:12px;color:#667085;font-weight:600;margin-left:4px}
+@media(max-width:1200px){.easy-sug-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:900px){.easy-sug-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.easy-sug-head{grid-template-columns:1fr}.easy-sug-head-actions{justify-self:start}}
+@media(max-width:600px){.easy-sug-grid{grid-template-columns:1fr}}
+
+/* === Easy v7: Vista Desktop/App + badge export === */
+.easy-preview-card{padding:14px 16px!important;}
+.easy-preview-toolbar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:0 0 12px;border-bottom:1px solid #e5e7eb;margin-bottom:12px;}
+.easy-preview-title{font-size:13px;font-weight:700;color:#344054;}
+.easy-preview-actions{display:flex;gap:6px;}
+.easy-preview-btn{padding:6px 10px!important;margin:0!important;font-size:12px!important;border-radius:5px!important;box-shadow:none!important;background:#eef2f6!important;color:#344054!important;border:1px solid #d7dee7!important;}
+.easy-preview-btn.active{background:#173f5f!important;color:#fff!important;border-color:#173f5f!important;}
+.easy-preview-btn:hover{transform:none!important;box-shadow:none!important;}
+.easy-preview-viewport{width:100%;margin:0 auto;transition:max-width .2s ease;}
+.easy-preview-viewport.easy-preview-app{max-width:390px;border:1px solid #d8dee6;border-radius:16px;padding:8px;background:#f8fafc;box-sizing:border-box;}
+.easy-preview-viewport.easy-preview-app #tablesContainer{margin:0!important;padding:8px!important;}
+.easy-preview-viewport.easy-preview-app .easy-ficha-wrapper{display:block!important;}
+.easy-preview-viewport.easy-preview-app .easy-ficha-wrapper>div{width:100%!important;max-width:100%!important;box-sizing:border-box!important;}
+.easy-preview-viewport.easy-preview-app table{width:100%!important;max-width:100%!important;table-layout:auto!important;}
+.easy-preview-viewport.easy-preview-app img{max-width:100%!important;height:auto!important;}
+.export-count{color:#fff!important;}
+</style>
+
+<style>
+/* === Semaforo compacto v19 === */
+.quality-panel{padding:16px 20px!important}
+.quality-toolbar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:12px}
+.quality-filters{display:flex;gap:6px;flex-wrap:wrap}.quality-filter{background:#fff!important;color:#344054!important;border:1px solid #dfe5ec!important;border-radius:999px!important;padding:6px 10px!important;font-size:12px!important;font-weight:700!important;margin:0!important;box-shadow:none!important}.quality-filter.active{background:#173f5f!important;color:#fff!important;border-color:#173f5f!important}.quality-search{width:220px;max-width:100%;border:1px solid #dfe5ec;border-radius:7px;padding:7px 10px;font-size:12px;box-sizing:border-box}
+.quality-details{margin-top:10px!important}.quality-list{margin-top:8px;border:1px solid #e5e9ef;border-radius:8px;overflow:hidden}.quality-row{display:grid;grid-template-columns:minmax(105px,150px) 1fr auto;gap:10px;align-items:center;padding:8px 10px;background:#fff;border-bottom:1px solid #eef1f4;font-size:12px}.quality-row:last-child{border-bottom:0}.quality-row-sku{font-weight:700;white-space:nowrap}.quality-row-reason{color:#667085;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.quality-row-status{font-size:11px;font-weight:700;white-space:nowrap}.quality-more{border:0!important;background:transparent!important;color:#475467!important;padding:2px 5px!important;margin:0!important;box-shadow:none!important;font-size:14px!important}.quality-expanded{grid-column:2 / 4;color:#667085;line-height:1.45;padding:2px 0 4px}.quality-expanded div+div{margin-top:3px}.quality-footer{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:8px;color:#667085;font-size:11.5px}.quality-page-actions{display:flex;gap:5px}.quality-page-actions button{margin:0!important;padding:4px 8px!important;font-size:11px!important;background:#fff!important;color:#344054!important;border:1px solid #dfe5ec!important;box-shadow:none!important}.quality-empty{padding:16px;text-align:center;color:#667085;font-size:12px}
+@media(max-width:700px){.quality-search{width:100%}.quality-row{grid-template-columns:1fr auto}.quality-row-reason{grid-column:1 / 3;white-space:normal}.quality-row-status{grid-column:2;grid-row:1}.quality-expanded{grid-column:1 / 3}.quality-footer{align-items:flex-start;flex-direction:column}}
+</style>
 </head>
+<!-- Video YouTube sincronizado desde index Easy de referencia funcional -->
 <body>
 <div class="header" style="background:#922b21;"><img alt="Easy" src="https://easycl.vtexassets.com/assets/vtex.file-manager-graphql/images/97740859-8d6b-4562-ad02-d6fd37c14e32___bab6e437e21af76315174bd3b460d74a.svg" style="height:40px;max-height:40px;width:fit-content;display:block;"/><span>Creador de Descripciones Largas</span></div>
 <div class="card">
@@ -586,6 +654,8 @@ img { max-width: 100%; height: auto; }
 <ul style="line-height:1.7;">
 <li>👨‍💻 <b>Descargar Plantilla:</b> Usa el botón para descargar un Excel preformateado.</li>
 <li>📁 <b>Procesar Excel:</b> Completa los campos requeridos.</li>
+<li>✨ <b>Revisar sugerencias:</b> Detecta información comercial útil y Cuidados de Uso presentes en el contenido. Permite aprobar o descartar sugerencias antes de generar el HTML.</li>
+<li>🚦 <b>Semáforo de calidad:</b> Resume por SKU si el contenido está listo, requiere revisión o necesita corrección según reglas objetivas.</li>
 <li>👁️ <b>Previsualizar:</b> Visualizar Tablas muestra resultados.</li>
 <li>⬇️ <b>Exportar:</b> Exportar HTML a Excel descarga resultados.</li>
 </ul>
@@ -597,15 +667,33 @@ img { max-width: 100%; height: auto; }
 <li><b>Imagen de Marca:</b> La URL debe estar en nuestros servidores internos. No se permiten URLs externas.</li>
 <li><b>Video YouTube:</b> Se acepta tanto la URL corta como la larga para incrustar videos.</li>
 <li><b>Descarga de documentos:</b> Selecciona en el Excel el botón que se acomode a tu necesidad más la URL del archivo.</li>
-<li>En la plantilla descargada podrás ver las instrucciones en mayor detalle</li></ul>
+<li>En la plantilla descargada podrás ver las instrucciones en mayor detalle.</li></ul>
 </div>
 <button onclick="updateTables()">👁️ Visualizar Tablas</button>
-<button onclick="exportHtmlToExcel()">⬇️ Exportar HTML a Excel</button>
+<button onclick="detectEasySuggestions(true)">✨ Revisar Sugerencias</button>
+<button onclick="exportHtmlToExcel('selected')">☑️ Exportar seleccionados <span id="exportSelectionCount" class="export-count" style="margin-left:8px;background:rgba(255,255,255,.18);color:#fff;padding:2px 8px;border-radius:999px;font-weight:700;">0</span></button>
+<button onclick="exportHtmlToExcel('all')">⬇️ Exportar todo</button>
 <button id="btnDescargarPlantilla" onclick="downloadTemplate()">📄 Descargar Plantilla</button> <span id="tplStatus" style="font-size:12px;color:#555;margin-left:8px;display:none;"></span>
 <button onclick="limpiarTodo()">🧹 Limpiar Todo</button>
 <input accept=".xlsx" id="importFile" onchange="importExcel()" type="file"/>
 </div>
-<div class="card" id="tablesContainer"></div>
+<div class="quality-panel" id="qualityPanel"></div>
+<div class="card easy-preview-card">
+  <div class="easy-preview-toolbar">
+    <div class="easy-preview-title">👁️ Vista previa de ficha</div>
+    <div class="easy-preview-actions">
+      <button type="button" id="easyPreviewDesktopBtn" class="easy-preview-btn active" onclick="setEasyPreviewMode('desktop')">🖥 Desktop</button>
+      <button type="button" id="easyPreviewAppBtn" class="easy-preview-btn" onclick="setEasyPreviewMode('app')">📱 App</button>
+    </div>
+  </div>
+  <div id="easyPreviewViewport" class="easy-preview-viewport easy-preview-desktop"><div id="tablesContainer"></div></div>
+</div>
+<div class="card" id="easySuggestionsCard" style="display:none;">
+<h2 style="margin-bottom:8px;">✨ Sugerencias automáticas Easy</h2>
+<p style="margin-top:0;color:#5f6b76;">Detecta características comerciales y cuidados de uso presentes en el contenido. Nada se aplica sin aprobación.</p>
+<div class="easy-sug-toolbar"><button type="button" onclick="applySelectedEasySuggestions()">✓ Aprobar seleccionados</button><button type="button" onclick="clearEasySuggestionSelection()">Limpiar selección</button></div>
+<div id="easySuggestionSummary"></div><div id="easySuggestions"></div>
+</div>
 <script>
 
 const defaultImagenes = {
@@ -615,6 +703,82 @@ const defaultImagenes = {
 };
 
 let excelRows = [];
+const exportSelection = new Set();
+const easySuggestionSelection = new Set();
+const easySuggestionOpenState = {info:true, care:true};
+const easyQualityUI = {filter:'attention', search:'', page:1, pageSize:25, expanded:new Set()};
+
+function toggleExportSelection(index, checked){
+  if(checked) exportSelection.add(Number(index)); else exportSelection.delete(Number(index));
+  updateExportSelectionCount();
+}
+function updateExportSelectionCount(){
+  const el=document.getElementById('exportSelectionCount');
+  if(el) el.textContent=String(exportSelection.size);
+}
+function toggleEasySuggestionSelection(i, checked){ if(checked) easySuggestionSelection.add(Number(i)); else easySuggestionSelection.delete(Number(i)); }
+function clearEasySuggestionSelection(){ easySuggestionSelection.clear(); renderEasySuggestions(); }
+function applySelectedEasySuggestions(){
+  const ids=[...easySuggestionSelection].filter(i=>easySuggestions[i]&&easySuggestions[i].status==='Sugerencia');
+  if(!ids.length) return alert('☑️ Selecciona al menos una sugerencia.');
+  let approved=0;
+  ids.forEach(i=>{ if(easySuggestions[i]&&easySuggestions[i].status==='Sugerencia'){ applyEasySuggestion(i,true); approved++; } });
+  easySuggestionSelection.clear(); renderEasySuggestions(); renderEasyQualityPanel(); updateTables();
+  alert(approved===1?'✅ Se aprobó 1 sugerencia':'✅ Se aprobaron '+approved+' sugerencias');
+}
+function toggleEasySuggestionSection(type){ easySuggestionOpenState[type]=!easySuggestionOpenState[type]; renderEasySuggestions(); }
+
+function setEasyPreviewMode(mode){
+  const vp=document.getElementById('easyPreviewViewport');
+  const d=document.getElementById('easyPreviewDesktopBtn');
+  const a=document.getElementById('easyPreviewAppBtn');
+  if(!vp) return;
+  const isApp=mode==='app';
+  vp.classList.toggle('easy-preview-app',isApp);
+  vp.classList.toggle('easy-preview-desktop',!isApp);
+  if(d) d.classList.toggle('active',!isApp);
+  if(a) a.classList.toggle('active',isApp);
+}
+
+function easySourceFieldKeys(){
+  return ['Descripción larga','Descripcion larga','Descripción Larga','Descripcion Larga','Descripción','Meta Descripción','Meta Descripcion','Descripción corta','Descripcion corta'];
+}
+function easyPlainText(s){ return String(s||'').replace(/<[^>]+>/g,' ').replace(/&nbsp;/gi,' ').replace(/\s+/g,' ').trim().toLowerCase(); }
+function easyLineContainsSource(line, source){
+  const l=easyPlainText(line), src=easyPlainText(source);
+  return !!src && l.includes(src);
+}
+function easySuggestionsForListText(rowIndex, listText){
+  return easySuggestions.filter(x=>x.rowIndex===rowIndex && easyLineContainsSource(listText,x.source));
+}
+function cleanupEasyRedundantListItems(row,rowIndex){
+  // Solo elimina un ítem independiente cuando TODAS las sugerencias detectadas en ese ítem ya fueron aplicadas.
+  // Los párrafos normales nunca se eliminan.
+  for(const key of easySourceFieldKeys()){
+    if(!Object.prototype.hasOwnProperty.call(row,key) || !row[key]) continue;
+    let text=String(row[key]);
+    let changed=false;
+    // Texto plano: bullets -, •, – o —
+    const eol=text.includes('\r\n')?'\r\n':'\n';
+    const lines=text.replace(/\r\n/g,'\n').replace(/\r/g,'\n').split('\n');
+    const kept=[];
+    for(const line of lines){
+      const isList=/^\s*[-•–—]\s+/.test(line);
+      if(!isList){kept.push(line);continue;}
+      const related=easySuggestionsForListText(rowIndex,line);
+      if(related.length && related.every(x=>x.status==='Aplicado')){ changed=true; continue; }
+      kept.push(line);
+    }
+    if(changed) text=kept.join(eol).replace(/(?:\r?\n){3,}/g,eol+eol).trim();
+    // HTML <li>: misma lógica.
+    text=text.replace(/<li\b[^>]*>[\s\S]*?<\/li>/gi, li=>{
+      const related=easySuggestionsForListText(rowIndex,li);
+      if(related.length && related.every(x=>x.status==='Aplicado')){ changed=true; return ''; }
+      return li;
+    });
+    if(changed) row[key]=text;
+  }
+}
 
 function importExcel() {
   const file = document.getElementById('importFile').files[0];
@@ -625,7 +789,10 @@ function importExcel() {
     const workbook = XLSX.read(data, {type: 'array'});
     const sheet = workbook.Sheets[workbook.SheetNames[0]];
     excelRows = XLSX.utils.sheet_to_json(sheet, { defval: "", raw: false });
+    exportSelection.clear(); updateExportSelectionCount(); easySuggestionSelection.clear();
+    easySuggestions=[]; const sc=document.getElementById('easySuggestionsCard'); if(sc) sc.style.display='none'; const qp=document.getElementById('qualityPanel'); if(qp){qp.style.display='none';qp.innerHTML='';}
     if (!excelRows.length) return alert('❌ No se encontraron filas en el Excel.');
+    renderEasyQualityPanel();
     alert('📁 Excel cargado correctamente. Puedes visualizar las tablas.');
   };
   reader.readAsArrayBuffer(file);
@@ -637,7 +804,268 @@ function get(row, keys) {
   }
   return "";
 }
+
+// === EASY: Sugerencias de Información Adicional y Cuidados de Uso ===
+let easySuggestions=[];
+const EASY_INFO_GROUPS=[
+ {h:/escaler|escalon|peldañ/i,r:[
+  {l:'Cantidad de escalones',rx:/\b(\d{1,2})\s+(?:escalones?|peldaños?)\b/i,f:m=>`Cantidad de escalones: ${m[1]}`},
+  {l:'Altura de trabajo',rx:/\baltura\s+(?:de\s+)?trabajo\s*(?:de|:)?\s*([\d.,]+\s*(?:m|cm|mm))\b/i,f:m=>`Altura de trabajo: ${m[1]}`},
+  {l:'Altura máxima',rx:/\baltura\s+m[aá]xima\s*(?:de|:)?\s*([\d.,]+\s*(?:m|cm|mm))\b/i,f:m=>`Altura máxima: ${m[1]}`},
+  {l:'Carga máxima',rx:/\b(?:soporta(?:\s+hasta)?|carga\s+m[aá]xima)\s*(?:de|:)?\s*(\d+(?:[.,]\d+)?\s*kg)\b/i,f:m=>`Carga máxima: ${m[1]}`},
+  {l:'Plegable',rx:/\bplegable\b/i,f:()=>`Plegable`},{l:'Con plataforma',rx:/\b(?:con\s+)?plataforma\b/i,f:()=>`Con plataforma`},
+  {l:'Uso doméstico',rx:/\buso\s+dom[eé]stico\b/i,f:()=>`Uso doméstico`},{l:'Uso profesional',rx:/\buso\s+profesional\b/i,f:()=>`Uso profesional`}
+ ]},
+ {h:/estanter|rack|mueble|organizador|gabinete|closet|armario|cajoner|repisa/i,r:[
+  {rx:/\b(\d{1,2})\s+(?:niveles?)\b/i,f:m=>`Cantidad de niveles: ${m[1]}`},{rx:/\b(\d{1,2})\s+(?:repisas?)\b/i,f:m=>`Cantidad de repisas: ${m[1]}`},
+  {rx:/\b(\d{1,2})\s+(?:puertas?)\b/i,f:m=>`Cantidad de puertas: ${m[1]}`},{rx:/\b(\d{1,2})\s+(?:cajones?)\b/i,f:m=>`Cantidad de cajones: ${m[1]}`},
+  {rx:/\b(\d{1,2})\s+(?:compartimentos?)\b/i,f:m=>`Cantidad de compartimentos: ${m[1]}`},{rx:/\b(\d{1,2})\s+(?:bandejas?)\b/i,f:m=>`Cantidad de bandejas: ${m[1]}`},
+  {rx:/\b(?:soporta(?:\s+hasta)?|carga\s+m[aá]xima)\s*(?:de|:)?\s*(\d+(?:[.,]\d+)?\s*kg)\s+(?:por|cada)\s+(?:nivel|repisa|bandeja)\b/i,f:m=>`Carga máxima por nivel: ${m[1]}`},
+  {rx:/\barmado\s+sin\s+herramientas\b/i,f:()=>`Armado sin herramientas`},{rx:/\bno\s+requiere\s+armado\b/i,f:()=>`No requiere armado`},{rx:/\brequiere\s+armado\b/i,f:()=>`Requiere armado`},{rx:/\bapilable\b/i,f:()=>`Apilable`}
+ ]},
+ {h:/taladro|atornillador|sierra|esmeril|lijador|herramienta/i,r:[
+  {rx:/\b(\d+(?:[.,]\d+)?)\s*v(?:oltios?)?\b/i,f:m=>`Voltaje: ${m[1]} V`},{rx:/\b(\d+(?:[.,]\d+)?)\s*w(?:atts?)?\b/i,f:m=>`Potencia: ${m[1]} W`},
+  {rx:/\b(\d[\d.]*)\s*rpm\b/i,f:m=>`Velocidad máxima: ${m[1]} RPM`},{rx:/\b(?:torque|par)\s*(?:m[aá]ximo)?\s*(?:de|:)?\s*(\d+(?:[.,]\d+)?\s*nm)\b/i,f:m=>`Torque máximo: ${m[1]}`},
+  {rx:/\b(\d+)\s+velocidades\b/i,f:m=>`Cantidad de velocidades: ${m[1]}`},{rx:/\bvelocidad\s+(?:variable|regulable)\b/i,f:()=>`Velocidad variable`},
+  {rx:/\b(\d+)\s+bater[ií]as\b/i,f:m=>`Cantidad de baterías: ${m[1]}`},{rx:/\bbater[ií]a\s+incluida\b/i,f:()=>`Batería incluida`},{rx:/\bcargador\s+incluido\b/i,f:()=>`Cargador incluido`}
+ ]},
+ {h:/hidrolavador/i,r:[{rx:/\b(\d+(?:[.,]\d+)?)\s*bar\b/i,f:m=>`Presión máxima: ${m[1]} bar`},{rx:/\b(\d+(?:[.,]\d+)?)\s*l\s*\/\s*h\b/i,f:m=>`Caudal máximo: ${m[1]} L/h`},{rx:/\bmanguera\s+(?:de\s+)?([\d.,]+\s*m)\b/i,f:m=>`Largo de manguera: ${m[1]}`}]},
+ {h:/compresor/i,r:[{rx:/\b(?:estanque|tanque)\s+(?:de\s+)?([\d.,]+\s*l)\b/i,f:m=>`Capacidad del estanque: ${m[1]}`},{rx:/\b(\d+(?:[.,]\d+)?)\s*(?:bar|psi)\b/i,f:m=>`Presión máxima: ${m[0]}`}]},
+ {h:/generador/i,r:[{rx:/\bautonom[ií]a\s*(?:de|:)?\s*([\d.,]+\s*h(?:oras?)?)\b/i,f:m=>`Autonomía: ${m[1]}`},{rx:/\b(?:estanque|tanque)\s+(?:de\s+)?([\d.,]+\s*l)\b/i,f:m=>`Capacidad del estanque: ${m[1]}`}]},
+ {h:/pintura|barniz|protector|impermeabilizante|adhesivo|sellador|silicona/i,r:[
+  {rx:/\brendimiento\s*(?:aproximado)?\s*(?:de|:)?\s*([^.;\n]{1,45})/i,f:m=>`Rendimiento: ${m[1].trim()}`},{rx:/\b(\d+)\s+manos\b/i,f:m=>`Cantidad de manos: ${m[1]}`},
+  {rx:/\bsecado\s+al\s+tacto\s*(?:en|:)?\s*([^.;\n]{1,30})/i,f:m=>`Secado al tacto: ${m[1].trim()}`},{rx:/\b(?:uso\s+)?interior\s+y\s+exterior\b/i,f:()=>`Uso interior y exterior`},
+  {rx:/\bterminaci[oó]n\s*(?:de|:)?\s*(mate|satinad[oa]|brillante)\b/i,f:m=>`Terminación: ${m[1]}`},{rx:/\bresistente\s+al\s+agua\b/i,f:()=>`Resistente al agua`}
+ ]},
+ {h:/cacerola|olla|sart[eé]n|bater[ií]a de cocina|menaje|cocina/i,r:[
+  {rx:/\b(?:v[aá]lid[ao]|apt[ao]|compatible)\s+para\s+inducci[oó]n\b/i,f:()=>`Compatible con inducción`},
+  {rx:/\binducci[oó]n\b/i,f:()=>`Compatible con inducción`},
+  {rx:/\b(?:fuegos?\s+de\s+gas|cocinas?\s+a\s+gas|gas)\b/i,f:()=>`Compatible con gas`},
+  {rx:/\bcocinas?\s+el[eé]ctricas?\b/i,f:()=>`Compatible con cocina eléctrica`},
+  {rx:/\bvitrocer[aá]micas?\b/i,f:()=>`Compatible con vitrocerámica`},
+  {rx:/\bacabado\s+esmaltado\b/i,f:()=>`Acabado esmaltado`},
+  {rx:/\bf[aá]cil\s+limpieza\b/i,f:()=>`Fácil limpieza`},
+  {rx:/\bcolores?\s+duraderos?\b/i,f:()=>`Color duradero`}
+ ]},
+ {h:/parrill/i,r:[{rx:/\b(\d+)\s+quemadores?\b/i,f:m=>`Cantidad de quemadores: ${m[1]}`},{rx:/\bterm[oó]metro\s+(?:incorporado|integrado)\b/i,f:()=>`Termómetro incorporado`},{rx:/\bcon\s+ruedas\b/i,f:()=>`Con ruedas`}]},
+ {h:/estufa|calefactor|ventilador/i,r:[{rx:/\b(\d+)\s+velocidades\b/i,f:m=>`Cantidad de velocidades: ${m[1]}`},{rx:/\b(?:cubre|cobertura)\s*(?:hasta|de|:)?\s*([\d.,]+\s*m[²2])\b/i,f:m=>`Área de cobertura: ${m[1]}`},{rx:/\btemporizador\b/i,f:()=>`Temporizador`},{rx:/\btermostato\b/i,f:()=>`Termostato`},{rx:/\baltura\s+regulable\b/i,f:()=>`Altura regulable`}]},
+ {h:/l[aá]mpara|ampolleta|foco|iluminaci[oó]n/i,r:[{rx:/\b(\d+(?:[.,]\d+)?)\s*lm\b/i,f:m=>`Flujo luminoso: ${m[1]} lm`},{rx:/\b(\d{4,5})\s*k\b/i,f:m=>`Temperatura de color: ${m[1]} K`},{rx:/\b(?:soquete|base)\s*(?:tipo)?\s*(e\d+|gu\d+)\b/i,f:m=>`Tipo de soquete: ${m[1].toUpperCase()}`},{rx:/\b(?:dimmable|regulable)\b/i,f:()=>`Intensidad regulable`}]},
+ {h:/alargador|extensi[oó]n|zapatilla el[eé]ctrica/i,r:[{rx:/\b(\d+)\s+tomas?\b/i,f:m=>`Cantidad de tomas: ${m[1]}`},{rx:/\bcable\s+(?:de\s+)?([\d.,]+\s*m)\b/i,f:m=>`Largo del cable: ${m[1]}`},{rx:/\bcon\s+interruptor\b/i,f:()=>`Con interruptor`}]},
+ {h:/cerradura|candado/i,r:[{rx:/\b(\d+)\s+llaves?\b/i,f:m=>`Cantidad de llaves: ${m[1]}`},{rx:/\bcombinaci[oó]n\b/i,f:()=>`Apertura por combinación`},{rx:/\b(\d+)\s+d[ií]gitos\b/i,f:m=>`Cantidad de dígitos: ${m[1]}`}]},
+ {h:/manguera|aspersor|riego/i,r:[{rx:/\b(?:largo|longitud)\s*(?:de|:)?\s*([\d.,]+\s*m)\b/i,f:m=>`Largo: ${m[1]}`},{rx:/\balcance\s*(?:de|:)?\s*([\d.,]+\s*m)\b/i,f:m=>`Alcance: ${m[1]}`},{rx:/\bcobertura\s*(?:de|:)?\s*([\d.,]+\s*m[²2])\b/i,f:m=>`Cobertura: ${m[1]}`},{rx:/\b(\d+)\s+(?:patrones?|funciones?)\s+de\s+riego\b/i,f:m=>`Cantidad de patrones de riego: ${m[1]}`}]},
+ {h:/cortac[eé]sped|desbrozador|orillador/i,r:[{rx:/\bancho\s+de\s+corte\s*(?:de|:)?\s*([^.;\n]{1,20})/i,f:m=>`Ancho de corte: ${m[1].trim()}`},{rx:/\baltura\s+de\s+corte\s*(?:de|:)?\s*([^.;\n]{1,25})/i,f:m=>`Altura de corte: ${m[1].trim()}`},{rx:/\b(\d+)\s+niveles\s+de\s+corte\b/i,f:m=>`Niveles de corte: ${m[1]}`}]},
+ {h:/aspirador/i,r:[{rx:/\bcapacidad\s*(?:de|:)?\s*([\d.,]+\s*l)\b/i,f:m=>`Capacidad: ${m[1]}`},{rx:/\b(?:h[uú]medo\s*(?:y|\/|-)\s*seco|l[ií]quidos?\s+y\s+s[oó]lidos?)\b/i,f:()=>`Aspira líquidos y sólidos`}]},
+ {h:/basurero/i,r:[{rx:/\bcapacidad\s*(?:de|:)?\s*([\d.,]+\s*l)\b/i,f:m=>`Capacidad: ${m[1]}`},{rx:/\bcon\s+pedal\b/i,f:()=>`Apertura con pedal`},{rx:/\bcierre\s+suave\b/i,f:()=>`Cierre suave`}]},
+ {h:/cer[aá]mica|porcelanato|piso|revestimiento/i,r:[{rx:/\b([\d.,]+)\s*m[²2]\s*(?:por|\/)?\s*caja\b/i,f:m=>`Cobertura por caja: ${m[1]} m²`},{rx:/\b(\d+)\s+piezas?\s+(?:por\s+)?caja\b/i,f:m=>`Cantidad de piezas por caja: ${m[1]}`},{rx:/\buso\s+en\s+muro\s+y\s+piso\b/i,f:()=>`Uso en muro y piso`}]},
+ {h:/grifer[ií]a|grifo|monomando|mezclador|llave lavabo|llave lavaplatos/i,r:[
+  {rx:/\b(\d+)\s+funciones?\b/i,f:m=>`Cantidad de funciones: ${m[1]}`},
+  {rx:/\bagua\s+fr[ií]a\s+y\s+caliente\b/i,f:()=>`Agua fría y caliente`},
+  {rx:/\binstalaci[oó]n\s+mural\b/i,f:()=>`Instalación mural`},
+  {rx:/\binstalaci[oó]n\s+(?:sobre\s+)?cubierta\b/i,f:()=>`Instalación sobre cubierta`},
+  {rx:/\bflexible\s+incluido\b/i,f:()=>`Flexible incluido`}
+ ]},
+ {h:/ducha|rociador|tel[eé]fono de ducha/i,r:[
+  {rx:/\b(\d+)\s+funciones?\b/i,f:m=>`Cantidad de funciones: ${m[1]}`},
+  {rx:/\btel[eé]fono\s+de\s+ducha\s+incluido\b/i,f:()=>`Teléfono de ducha incluido`},
+  {rx:/\bflexible\s+incluido\b/i,f:()=>`Flexible incluido`},{rx:/\bbarra\s+incluida\b/i,f:()=>`Barra incluida`}
+ ]},
+ {h:/wc|sanitario|inodoro|estanque wc/i,r:[
+  {rx:/\b(?:descarga|sistema)\s+(simple|doble)\b/i,f:m=>`Tipo de descarga: ${m[1]}`},
+  {rx:/\bdescarga\s+(?:de\s+)?([\d.,]+\s*l)\b/i,f:m=>`Capacidad de descarga: ${m[1]}`},
+  {rx:/\basiento\s+incluido\b/i,f:()=>`Asiento incluido`},{rx:/\bcierre\s+suave\b/i,f:()=>`Cierre suave`}
+ ]},
+ {h:/lavaplatos|lavamanos|fregadero/i,r:[
+  {rx:/\b(\d+)\s+cubetas?\b/i,f:m=>`Cantidad de cubetas: ${m[1]}`},
+  {rx:/\bcon\s+rebalse\b/i,f:()=>`Con rebalse`},{rx:/\bcon\s+escurridor\b/i,f:()=>`Con escurridor`}
+ ]},
+ {h:/puerta|port[oó]n/i,r:[
+  {rx:/\b(?:apertura|sentido)\s+(?:a\s+)?(derecha|izquierda)\b/i,f:m=>`Sentido de apertura: ${m[1]}`},
+  {rx:/\b(\d+)\s+hojas?\b/i,f:m=>`Cantidad de hojas: ${m[1]}`},
+  {rx:/\buso\s+interior\s+y\s+exterior\b/i,f:()=>`Uso interior y exterior`},
+  {rx:/\buso\s+interior\b/i,f:()=>`Uso interior`},{rx:/\buso\s+exterior\b/i,f:()=>`Uso exterior`}
+ ]},
+ {h:/ventana|ventanal/i,r:[
+  {rx:/\b(\d+)\s+hojas?\b/i,f:m=>`Cantidad de hojas: ${m[1]}`},
+  {rx:/\b(?:apertura|tipo)\s+(corredera|proyectante|abatible|oscilobatiente)\b/i,f:m=>`Tipo de apertura: ${m[1]}`},
+  {rx:/\bvidrio\s+(simple|doble)\b/i,f:m=>`Tipo de vidrio: ${m[1]}`}
+ ]},
+ {h:/cortina|persiana|roller/i,r:[
+  {rx:/\bblackout\b/i,f:()=>`Blackout`},{rx:/\bbloqueo\s+(?:de\s+luz\s+)?(\d{1,3}\s*%)\b/i,f:m=>`Bloqueo de luz: ${m[1]}`},
+  {rx:/\bmecanismo\s*(?:tipo|:)?\s*(roller|cadena|manual|motorizado)\b/i,f:m=>`Mecanismo: ${m[1]}`}
+ ]},
+ {h:/macetero|jardinera/i,r:[
+  {rx:/\bautorriego\b/i,f:()=>`Sistema de autorriego`},{rx:/\b(?:con\s+)?drenaje\b/i,f:()=>`Con drenaje`},
+  {rx:/\buso\s+interior\s+y\s+exterior\b/i,f:()=>`Uso interior y exterior`}
+ ]},
+ {h:/caja de herramientas|carro de herramientas|malet[ií]n de herramientas/i,r:[
+  {rx:/\b(\d+)\s+compartimentos?\b/i,f:m=>`Cantidad de compartimentos: ${m[1]}`},
+  {rx:/\b(\d+)\s+cajones?\b/i,f:m=>`Cantidad de cajones: ${m[1]}`},
+  {rx:/\b(\d+)\s+bandejas?\b/i,f:m=>`Cantidad de bandejas: ${m[1]}`},
+  {rx:/\bcon\s+ruedas\b/i,f:()=>`Con ruedas`},{rx:/\bmango\s+telesc[oó]pico\b/i,f:()=>`Mango telescópico`}
+ ]},
+ {h:/toalla|s[aá]bana|plum[oó]n|almohada|frazada|cubrecama|textil hogar|ropa de cama|ba[ñn]o/i,r:[
+  {rx:/\b(?:set|juego)[^.;\n]{0,40}?\b(\d{1,2})\s+piezas\b/i,f:m=>`Cantidad de piezas: ${m[1]}`},
+  {rx:/\balta\s+absorci[oó]n\b/i,f:()=>`Alta absorción`},
+  {rx:/\b(?:excelente|gran)\s+capacidad\s+de\s+absorci[oó]n\b/i,f:()=>`Alta absorción`},
+  {rx:/\bhipoalerg[eé]nic[oa]s?\b/i,f:()=>`Hipoalergénico`},
+  {rx:/\btranspirable(?:s)?\b/i,f:()=>`Transpirable`},
+  {rx:/\bsecado\s+r[aá]pido\b/i,f:()=>`Secado rápido`},
+  {rx:/\b(?:suave|suavidad)\b/i,f:()=>`Suave al tacto`}
+ ]},
+ {h:/kit|set|juego/i,r:[{rx:/\b(?:kit|set|juego)\s+(?:de\s+)?(\d+)\s+piezas\b/i,f:m=>`Cantidad de piezas: ${m[1]}`}]}
+];
+const EASY_CARE_RULES=[
+ // Textil / lavado
+ [/\bno\s+planchar\b/i,'No planchar'],
+ [/\blav(?:a|ar|ado)[^.;\n]{0,35}antes\s+del\s+primer\s+uso\b/i,'Lavar antes del uso'],
+ [/\blav(?:a|ar|ado)[^.;\n]{0,45}colores\s+similares\b/i,'Lavar colores similares'],
+ [/\bevitar[^.;\n]{0,25}(?:el\s+)?uso\s+de\s+suavizantes\b/i,'No usar suavizante'],
+ [/\bno\s+(?:usar|utilizar)\s+suavizantes\b/i,'No usar suavizante'],
+ [/\bno\s+(?:usar|utilizar)\s+(?:cloro|lej[ií]a|blanqueador)\b/i,'No usar blanqueador'],
+ [/\bno\s+blanquear\b/i,'No usar blanqueador'],
+ [/\blavar[^.;\n]{0,24}(?:agua\s+fr[ií]a|en\s+fr[ií]o)\b/i,'Lavar con agua fría'],
+ [/\blavar[^.;\n]{0,24}(?:m[aá]x(?:imo)?\.?\s*)?30\s*°?\s*c\b/i,'Lavar máximo 30 °C'],
+ [/\blavar[^.;\n]{0,24}(?:m[aá]x(?:imo)?\.?\s*)?40\s*°?\s*c\b/i,'Lavar máximo 40 °C'],
+ [/\blavar\s+a\s+mano\b/i,'Lavar a mano'],
+ [/\blavado\s+delicado\b/i,'Usar lavado delicado'],
+ [/\bno\s+(?:usar|secar\s+en)\s+(?:la\s+)?secadora\b/i,'No usar secadora'],
+ [/\bapto\s+para\s+(?:la\s+)?secadora\b/i,'Apto para secadora'],
+ [/\bsecar\s+a\s+la\s+sombra\b/i,'Secar a la sombra'],
+ [/\bsecar\s+(?:en\s+plano|extendido)\b/i,'Secar en plano'],
+ [/\bsacud(?:e|ir)[^.;\n]{0,45}(?:al\s+sacarlas?|despu[eé]s\s+de\s+lavar)\b/i,'Sacudir después del lavado'],
+ [/\b(?:completamente\s+secas?|secar\s+completamente)[^.;\n]{0,45}antes\s+de\s+guardar(?:las|los)?\b/i,'Secar antes de guardar'],
+ [/\bmant[eé]n[^.;\n]{0,35}alejad[oa]s?\s+de\s+productos?[^.;\n]{0,45}(?:manchar|decolorar)\b/i,'Evitar productos decolorantes'],
+ // Limpieza / mantenimiento general
+ [/\blimpiar\s+con\s+(?:un\s+)?paño\s+seco\b/i,'Limpiar con paño seco'],
+ [/\blimpiar\s+con\s+(?:un\s+)?paño\s+h[uú]medo\b/i,'Limpiar con paño húmedo'],
+ [/\bno\s+(?:usar|utilizar)\s+(?:productos\s+)?abrasivos\b/i,'No usar abrasivos'],
+ [/\bno\s+(?:usar|utilizar)\s+solventes\b/i,'No usar solventes'],
+ [/\bno\s+sumergir(?:\s+en\s+agua)?\b/i,'No sumergir en agua'],
+ [/\bmantener\s+seco\b/i,'Mantener seco'],
+ [/\bsecar\s+(?:despu[eé]s|luego)\s+de\s+(?:cada\s+)?uso\b/i,'Secar después del uso'],
+ [/\balmacenar\s+en\s+(?:un\s+)?lugar\s+seco\b/i,'Almacenar en lugar seco'],
+ [/\bproteger\s+de\s+la\s+humedad\b/i,'Proteger de la humedad'],
+ [/\bproteger\s+(?:de|del)\s+(?:la\s+)?(?:exposici[oó]n\s+directa\s+al\s+)?sol\b/i,'Proteger del sol'],
+ [/\bevitar[^.;\n]{0,35}(?:altas\s+temperaturas|calor\s+excesivo)\b/i,'Evitar altas temperaturas'],
+ [/\bdesconectar\s+antes\s+de\s+limpiar\b/i,'Desconectar antes de limpiar'],
+ [/\bapagar\s+antes\s+de\s+limpiar\b/i,'Apagar antes de limpiar'],
+ [/\bretirar\s+(?:la\s+)?bater[ií]a\s+antes\s+(?:del\s+)?mantenimiento\b/i,'Retirar batería antes'],
+ [/\blubricar\s+peri[oó]dicamente\b/i,'Lubricar periódicamente'],
+ [/\brevisar[^.;\n]{0,30}(?:fijaciones|tornillos|uniones)\b/i,'Revisar fijaciones periódicamente'],
+ [/\blimpiar\s+(?:despu[eé]s|luego)\s+de\s+(?:cada\s+)?uso\b/i,'Limpiar después del uso'],
+ [/\bguardar\s+bajo\s+techo\b/i,'Almacenar bajo techo'],
+ [/\bcerrar\s+(?:el\s+)?envase\s+(?:despu[eé]s|luego)\s+de\s+usar\b/i,'Cerrar envase tras usar'],
+ [/\bagitar\s+antes\s+de\s+usar\b/i,'Agitar antes de usar'],
+ [/\bmezclar\s+antes\s+de\s+aplicar\b/i,'Mezclar antes de aplicar'],
+ [/\blimpiar\s+(?:la\s+)?superficie\s+antes\s+de\s+aplicar\b/i,'Limpiar antes de aplicar'],
+ [/\b(?:superficie|sustrato)\s+(?:debe\s+estar\s+)?seca\b/i,'Aplicar sobre superficie seca'],
+ [/\b(?:usar|utilizar)\s+guantes\b/i,'Usar guantes de protección'],
+ [/\b(?:usar|utilizar)\s+protecci[oó]n\s+ocular\b/i,'Usar protección ocular'],
+ [/\b(?:usar|utilizar)\s+protecci[oó]n\s+auditiva\b/i,'Usar protección auditiva'],
+ [/\b(?:usar|utilizar)\s+(?:en\s+)?(?:un\s+)?(?:lugar|[aá]rea)\s+ventilad[oa]\b/i,'Usar en área ventilada'],
+ [/\bmantener\s+fuera\s+del\s+alcance\s+de\s+(?:los\s+)?niños\b/i,'Fuera del alcance infantil']
+];
+function easyText(row){return [get(row,['Nombre del Producto','Nombre Producto','Producto']),get(row,['Meta Descripción','Meta Descripcion','Descripción corta','Descripcion corta']),get(row,['Descripción larga','Descripcion larga','Descripción Larga','Descripcion Larga','Descripción'])].join(' ')}
+function easyContext(row){return [get(row,['Categoría','Categoria','Ruta Path','Departamento','Subcategoría','Subcategoria','Tipo de Producto','Tipo Producto']),easyText(row)].join(' ')}
+function easyArray(row,key){return String(row[key]||'').split('|').map(x=>x.trim()).filter(Boolean)}
+function easySetArray(row,key,a){row[key]=Array.from(new Set(a)).join(' | ')}
+function escEasy(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
+function easyGet(row,keys){for(const k of keys){if(row&&row[k]!==undefined&&row[k]!==null&&String(row[k]).trim()!=='')return String(row[k]);}return '';}
+function evaluateEasyQuality(row,rowIndex){
+  const reasons=[]; let level='green';
+  const name=easyGet(row,['Nombre del Producto','Nombre Producto','Producto','Nombre']);
+  const short=easyGet(row,['Meta Descripción','Meta Descripcion','Descripción corta','Descripcion corta']);
+  const long=easyGet(row,['Descripción larga','Descripcion larga','Descripción Larga','Descripcion Larga','Descripción']);
+  const pending=easySuggestions.filter(s=>s.rowIndex===rowIndex&&s.status==='Sugerencia').length;
+  const red=m=>{level='red';reasons.push('🔴 '+m)}; const yellow=m=>{if(level!=='red')level='yellow';reasons.push('🟡 '+m)};
+  if(!name) red('Falta nombre del producto');
+  if(!long) red('Falta descripción larga');
+  if(!short) yellow('Falta descripción corta'); else if(short.length>160) yellow('Descripción corta supera 160 caracteres ('+short.length+')');
+  if(long && long.replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim().length<120) yellow('Descripción larga con poco contenido');
+  if(pending) yellow(pending+' sugerencia'+(pending===1?'':'s')+' pendiente'+(pending===1?'':'s')+' de revisión');
+  if(!reasons.length) reasons.push('🟢 Sin alertas objetivas detectadas');
+  return {level,reasons};
+}
+function setEasyQualityFilter(filter){easyQualityUI.filter=filter;easyQualityUI.page=1;renderEasyQualityPanel();}
+function setEasyQualitySearch(value){easyQualityUI.search=String(value||'');easyQualityUI.page=1;renderEasyQualityPanel();}
+function setEasyQualityPage(delta){easyQualityUI.page=Math.max(1,easyQualityUI.page+delta);renderEasyQualityPanel();}
+function toggleEasyQualityRow(index){if(easyQualityUI.expanded.has(index))easyQualityUI.expanded.delete(index);else easyQualityUI.expanded.add(index);renderEasyQualityPanel();}
+function renderEasyQualityPanel(){
+  const panel=document.getElementById('qualityPanel'); if(!panel)return;
+  if(!excelRows.length){panel.style.display='none';panel.innerHTML='';return;}
+  const rows=excelRows.map((row,i)=>({index:i,sku:easyGet(row,['SKU','Sku','sku','RefId','RefID']),q:evaluateEasyQuality(row,i)}));
+  const counts={green:0,yellow:0,red:0}; rows.forEach(x=>counts[x.q.level]++);
+  const overall=counts.red?'red':(counts.yellow?'yellow':'green');
+  const labels={green:'Listo para publicar',yellow:'Requiere revisión',red:'Requiere corrección'};
+  const status={green:'Listo',yellow:'Revisar',red:'Corregir'};
+  let filtered=rows.filter(x=>easyQualityUI.filter==='all'||(easyQualityUI.filter==='attention'&&x.q.level!=='green')||x.q.level===easyQualityUI.filter);
+  const q=easyQualityUI.search.trim().toLowerCase(); if(q)filtered=filtered.filter(x=>String(x.sku||'').toLowerCase().includes(q)||x.q.reasons.join(' ').toLowerCase().includes(q));
+  const total=filtered.length, pages=Math.max(1,Math.ceil(total/easyQualityUI.pageSize)); easyQualityUI.page=Math.min(easyQualityUI.page,pages);
+  const from=(easyQualityUI.page-1)*easyQualityUI.pageSize, shown=filtered.slice(from,from+easyQualityUI.pageSize);
+  const f=(key,label,count)=>`<button type="button" class="quality-filter ${easyQualityUI.filter===key?'active':''}" onclick="setEasyQualityFilter('${key}')">${label} ${count}</button>`;
+  panel.style.display='block';
+  panel.innerHTML=`<div class="quality-head"><h2>🚦 Semáforo de calidad</h2><div class="quality-overall"><span class="quality-dot quality-${overall}"></span>${labels[overall]}</div></div>
+  <div class="quality-summary"><span class="quality-pill"><span class="quality-dot quality-green"></span>${counts.green} OK</span><span class="quality-pill"><span class="quality-dot quality-yellow"></span>${counts.yellow} por revisar</span><span class="quality-pill"><span class="quality-dot quality-red"></span>${counts.red} con corrección</span></div>
+  <details class="quality-details"><summary>Ver detalle por SKU</summary><div class="quality-toolbar"><div class="quality-filters">${f('attention','Atención',counts.yellow+counts.red)}${f('yellow','🟠 Revisar',counts.yellow)}${f('red','🔴 Corrección',counts.red)}${f('green','🟢 OK',counts.green)}${f('all','Todos',rows.length)}</div><input class="quality-search" type="search" placeholder="🔎 Buscar SKU" value="${escEasy(easyQualityUI.search)}" oninput="setEasyQualitySearch(this.value)"></div>
+  <div class="quality-list">${shown.length?shown.map(x=>{const expanded=easyQualityUI.expanded.has(x.index), first=x.q.reasons[0]||'';return `<div class="quality-row"><div class="quality-row-sku"><span class="quality-dot quality-${x.q.level}"></span> ${escEasy(x.sku||'—')}</div><div class="quality-row-reason">${escEasy(first.replace(/^[🔴🟡🟢]\s*/u,''))}${x.q.reasons.length>1?` · ${x.q.reasons.length} alertas`:''}</div><div class="quality-row-status">${status[x.q.level]} ${x.q.reasons.length>1?`<button type="button" class="quality-more" title="Ver detalle" onclick="toggleEasyQualityRow(${x.index})">${expanded?'▴':'▾'}</button>`:''}</div>${expanded?`<div class="quality-expanded">${x.q.reasons.map(r=>`<div>${escEasy(r)}</div>`).join('')}</div>`:''}</div>`}).join(''):`<div class="quality-empty">No hay SKU para este filtro.</div>`}</div>
+  <div class="quality-footer"><span>Mostrando ${total?from+1:0}–${Math.min(from+easyQualityUI.pageSize,total)} de ${total} SKU</span>${pages>1?`<div class="quality-page-actions"><button type="button" onclick="setEasyQualityPage(-1)" ${easyQualityUI.page<=1?'disabled':''}>‹ Anterior</button><span style="padding:5px 4px">${easyQualityUI.page} / ${pages}</span><button type="button" onclick="setEasyQualityPage(1)" ${easyQualityUI.page>=pages?'disabled':''}>Siguiente ›</button></div>`:''}</div></details>`;
+}
+
+function detectEasySuggestions(scrollToModule=false){
+ easySuggestions=[];
+ excelRows.forEach((row,rowIndex)=>{const text=easyText(row),ctx=easyContext(row),sku=get(row,['SKU']); const seen=new Set();
+  EASY_INFO_GROUPS.forEach(g=>{if(!g.h.test(ctx))return;g.r.forEach(rule=>{const m=text.match(rule.rx);if(m){const value=rule.f(m);const k='i|'+value.toLowerCase();if(!seen.has(k)&&!easyArray(row,'Información Adicional').includes(value)){seen.add(k);easySuggestions.push({type:'info',rowIndex,sku,value,source:m[0],status:'Sugerencia'});}}});});
+  EASY_CARE_RULES.forEach(([rx,value])=>{const m=text.match(rx);const k='c|'+value.toLowerCase();if(m&&!seen.has(k)&&!easyArray(row,'Cuidados de Uso').includes(value)){seen.add(k);easySuggestions.push({type:'care',rowIndex,sku,value,source:m[0],status:'Sugerencia'});}});
+ }); renderEasySuggestions(); renderEasyQualityPanel();
+ if(scrollToModule){setTimeout(()=>{const el=document.getElementById('easySuggestionsCard');if(el){el.scrollIntoView({behavior:'smooth',block:'start'});}},80);}
+}
+function applyEasySuggestion(i,silent=false){const s=easySuggestions[i];if(!s||s.status!=='Sugerencia')return;const row=excelRows[s.rowIndex],key=s.type==='info'?'Información Adicional':'Cuidados de Uso';const a=easyArray(row,key);if(!a.includes(s.value))a.push(s.value);easySetArray(row,key,a);s.status='Aplicado';cleanupEasyRedundantListItems(row,s.rowIndex);if(!silent){renderEasySuggestions();renderEasyQualityPanel();updateTables();}}
+function ignoreEasySuggestion(i){if(easySuggestions[i]){easySuggestions[i].status='Ignorado';renderEasySuggestions();renderEasyQualityPanel();}}
+function applyEasyGroup(type,rowIndex){easySuggestions.forEach((s,i)=>{if(s.type===type&&s.rowIndex===rowIndex&&s.status==='Sugerencia')applyEasySuggestion(i,true)});renderEasySuggestions();renderEasyQualityPanel();updateTables();}
+function applyAllEasy(){easySuggestions.forEach((s,i)=>{if(s.status==='Sugerencia')applyEasySuggestion(i,true)});renderEasySuggestions();renderEasyQualityPanel();updateTables();}
+function renderEasySuggestions(){
+  const card=document.getElementById('easySuggestionsCard'),box=document.getElementById('easySuggestions'),sum=document.getElementById('easySuggestionSummary');
+  card.style.display='block';
+  const pending=easySuggestions.filter(x=>x.status==='Sugerencia').length;
+  sum.innerHTML=`<div style="margin:8px 0 12px;font-size:12.5px;color:#475467;"><b>${pending}</b> sugerencia${pending===1?'':'s'} pendiente${pending===1?'':'s'}</div>`;
+  if(!easySuggestions.length){box.innerHTML='<p>✅ No se detectaron sugerencias con el diccionario actual.</p>';return;}
+  const groups=[['info','💡 Agregar Información Adicional'],['care','🧺 Agregar Cuidados de Uso']];
+  let html='';
+  groups.forEach(([type,title])=>{
+    const items=easySuggestions.map((s,i)=>({s,i})).filter(x=>x.s.type===type);
+    if(!items.length)return;
+    const pendingItems=items.filter(x=>x.s.status==='Sugerencia');
+    const open=easySuggestionOpenState[type]!==false;
+    html+=`<div class="easy-sug-section"><div class="easy-sug-head"><button type="button" class="easy-sug-toggle" onclick="toggleEasySuggestionSection('${type}')"><span>${open?'▾':'▸'} ${title}</span><span>${pendingItems.length} pendiente${pendingItems.length===1?'':'s'}</span></button><div class="easy-sug-head-actions">${pendingItems.length?`<button type="button" onclick="applySelectedEasyType('${type}')">✓ Aprobar seleccionados</button><button type="button" onclick="applyEasyType('${type}')">✓ Aprobar todo</button>`:''}</div></div><div class="easy-sug-body" style="display:${open?'block':'none'};">`;
+    const by={}; items.forEach(x=>(by[x.s.rowIndex]??=[]).push(x));
+    Object.entries(by).forEach(([ri,arr])=>{
+      const first=arr[0].s;
+      const rowPending=arr.filter(x=>x.s.status==='Sugerencia').length;
+      html+=`<div class="easy-sku-group"><div class="easy-sku-head"><div class="easy-sku-title">SKU ${escEasy(first.sku||'Sin SKU')} · ${arr.length} sugerencia${arr.length===1?'':'s'}</div></div><div class="easy-sku-body"><div class="easy-sug-grid">`;
+      arr.forEach(({s,i})=>{
+        const done=s.status!=='Sugerencia';
+        html+=`<div class="easy-sug-card" style="${done?'opacity:.55;':''}"><div class="easy-sug-select">${!done?`<input class="easy-sug-check" type="checkbox" ${easySuggestionSelection.has(i)?'checked':''} onchange="toggleEasySuggestionSelection(${i},this.checked)">`:''}<div><div class="easy-sug-value">${escEasy(s.value)}</div><div class="easy-sug-source">Detectado: “${escEasy(s.source)}”</div></div></div>${!done?`<div class="easy-sug-actions"><button type="button" class="easy-sug-action easy-sug-ok" title="Aprobar" aria-label="Aprobar" onclick="applyEasySuggestion(${i})">✓</button><button type="button" class="easy-sug-action easy-sug-no" title="Rechazar" aria-label="Rechazar" onclick="ignoreEasySuggestion(${i})">✕</button></div>`:`<div class="easy-sug-status">${escEasy(s.status)}</div>`}</div>`;
+      });
+      html+='</div></div></div>';
+    });
+    html+='</div></div>';
+  });
+  box.innerHTML=html;
+}
+function applySelectedEasyType(type){
+  const ids=[...easySuggestionSelection].filter(i=>easySuggestions[i]&&easySuggestions[i].type===type&&easySuggestions[i].status==='Sugerencia');
+  if(!ids.length) return alert('☑️ Selecciona al menos una sugerencia de esta sección.');
+  let approved=0;
+  ids.forEach(i=>{ if(easySuggestions[i]&&easySuggestions[i].status==='Sugerencia'){ applyEasySuggestion(i,true); approved++; } easySuggestionSelection.delete(i); });
+  renderEasySuggestions(); renderEasyQualityPanel(); updateTables();
+  alert(approved===1?'✅ Se aprobó 1 sugerencia':'✅ Se aprobaron '+approved+' sugerencias');
+}
+function applyEasyType(type){ easySuggestions.forEach((s,i)=>{if(s.type===type&&s.status==='Sugerencia')applyEasySuggestion(i,true)}); easySuggestionSelection.clear(); renderEasySuggestions();renderEasyQualityPanel();updateTables(); }
+
+function buildEasyEnhancements(row){const info=easyArray(row,'Información Adicional'),care=easyArray(row,'Cuidados de Uso');let h='';if(info.length)h+=`<div style='margin:14px 0;'><div style='font-weight:700;margin-bottom:7px;color:#2c3e50;'>Características</div><div style='display:flex;flex-wrap:wrap;gap:7px;'>${info.map(v=>`<span style='display:inline-block;background:#fff8ed;border:1px solid #f2c48d;color:#9a4d00;border-radius:7px;padding:5px 9px;font-size:13px;'>${v}</span>`).join('')}</div></div>`;if(care.length)h+=`<div style='margin:14px 0;'><div style='font-weight:700;margin-bottom:7px;color:#2c3e50;'>Cuidados de Uso</div><div style='display:flex;flex-wrap:wrap;gap:7px;'>${care.map(v=>`<span style='display:inline-block;background:#f5f7fa;border:1px solid #d9e0e7;color:#344054;border-radius:7px;padding:5px 9px;font-size:13px;'>${v}</span>`).join('')}</div></div>`;return h;}
+
 function updateTables() {
+  renderEasyQualityPanel();
   const container = document.getElementById('tablesContainer');
   if (!excelRows.length) {
     container.innerHTML = '<p>❌ No hay datos cargados. Por favor sube un Excel primero.</p>';
@@ -678,7 +1106,12 @@ function updateTables() {
         </div>`;
     }
     html += `<div style='flex:1 1 400px; margin-bottom:25px; background:#fff; border:1px solid #eef2f6; border-radius:12px; box-shadow:0 6px 18px rgba(0,0,0,0.08); overflow:hidden; padding: clamp(14px, 2vw, 22px);'>
-<div class='visual-id'>Ficha N° ${index + 1}</div>
+<div style='display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:8px;'>
+  <div class='visual-id' style='margin-bottom:0;'>Ficha N° ${index + 1}</div>
+  <label style='display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:#344054;cursor:pointer;'>
+    <input type='checkbox' style='width:16px;height:16px;accent-color:#922b21;cursor:pointer;' ${exportSelection.has(index)?'checked':''} onchange='toggleExportSelection(${index}, this.checked)'> Exportar ficha
+  </label>
+</div>
 <div style='display:inline-block; background:#f4f6f7; color:#333; font-size:13px; padding:4px 10px; border-radius:6px; margin-top:6px;'>📦 SKU: ${sku}</div>
 <h2 style='margin:0 0 8px 0;color:#2c3e50;font-size:22px;line-height:1.25;'>${descripcion}</h2>
 ${cta ? formatMetaDescripcion(cta) : ''}
@@ -687,6 +1120,7 @@ ${marca ? `<div style='margin:0 0 8px 0;font-size:15px;line-height:1.5;'>${marca
 ${guiaTallasRaw ? buildGuiaTallasButton(guiaTallasRaw) : ''}
 
 ${descripcionProducto ? `<div style='margin:0 0 10px 0;background:transparent;color:#000;font-size:15px;padding:0;'>${formatDescripcionHTML(descripcionProducto)}</div>` : ''}
+${buildEasyEnhancements(row)}
 ${botonHTML}
 `;
 // NUEVO: sólo mostrar la ficha si hay Material o Dimensiones
@@ -698,7 +1132,7 @@ if (hasSpecs) {
     if (dimensiones && dimensiones.trim() !== '') html += `<tr style='display:table-row !important;'><td class='easy-spec-icon' style='display:table-cell !important;padding:15px;width:70px;min-width:70px;text-align:center !important;vertical-align:middle !important;'><img src='${imgDimensiones || defaultImagenes.dimensiones}' alt='Dimensiones' style='width:50px;height:50px;object-fit:contain;display:block;margin:0 auto !important;'></td><td class='easy-spec-text' style='display:table-cell !important;padding:15px;text-align:left !important;vertical-align:middle !important;white-space:normal;'><strong>Dimensiones:</strong> ${dimensiones}</td></tr>`;
     html += `</table>`;
 }
-    if (embedUrl) html += `<div style='height:16px;line-height:0;font-size:0;clear:both;'>&nbsp;</div><div class="easy-video-responsive" style="position:relative;width:100%;max-width:100%;aspect-ratio:16 / 9;height:auto;box-sizing:border-box;margin:0;border-radius:12px;overflow:hidden;background:#000;clear:both;"><iframe src='${embedUrl}' title='Video YouTube' width='560' height='315' style="position:absolute;inset:0;width:100%;height:100%;max-width:100%;border:0;display:block;margin:0;padding:0;" referrerpolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe></div>`;
+    if (embedUrl) html += buildYoutubePreviewHtml(videoUrl);
     html += `</div>`;
   });
   html += '</div>';
@@ -707,6 +1141,7 @@ if (hasSpecs) {
 
 function cleanExportHtml(html) {
   return String(html || '')
+    .replace(/&quot;/gi, '"')
     .replace(/>\s+</g, '><')
     .replace(/<div[^>]*>\s*<\/div>/gi, '')
     .replace(/<p[^>]*>\s*<\/p>/gi, '')
@@ -716,12 +1151,15 @@ function cleanExportHtml(html) {
     .trim();
 }
 
-function exportHtmlToExcel() {
+function exportHtmlToExcel(mode = 'all') {
   if (!excelRows.length) return alert('❌ No hay datos cargados para exportar.');
+  const selectedMode = mode === 'selected';
+  if(selectedMode && !exportSelection.size) return alert('☑️ Selecciona al menos una ficha para exportar.');
 
   const outputRows = [];
 
-  excelRows.forEach((row) => {
+  excelRows.forEach((row, rowIndex) => {
+    if(selectedMode && !exportSelection.has(rowIndex)) return;
     const sku = get(row, ['SKU']);
     const marca = get(row, ['Descripción de la Marca','Descripcion de la Marca','Descripción Marca']);
     const descripcion = get(row, ['Nombre del Producto','Nombre Producto','Producto']);
@@ -763,6 +1201,7 @@ ${imgMarca ? `<div style='margin:0 0 8px 0;line-height:0;'><img src='${imgMarca}
 ${marca ? `<div style='margin:0 0 8px 0;font-size:15px;line-height:1.5;'>${marca}</div>` : ''}
 ${guiaTallasRaw ? buildGuiaTallasButton(guiaTallasRaw) : ''}
 ${descripcionProducto ? `<div style='margin:0 0 10px 0;background:transparent;color:#000;font-size:15px;padding:0;'>${formatDescripcionHTML(descripcionProducto)}</div>` : ''}
+${buildEasyEnhancements(row)}
 ${botonHTML}`;
 
     const hasSpecs = (material && material.trim() !== '') || (dimensiones && dimensiones.trim() !== '');
@@ -779,7 +1218,7 @@ ${botonHTML}`;
     }
 
     if (embedUrl) {
-      html += `<div style='height:16px;line-height:0;font-size:0;clear:both;'>&nbsp;</div><div class="easy-video-responsive" style="position:relative;width:100%;max-width:100%;aspect-ratio:16 / 9;height:auto;box-sizing:border-box;margin:0;border-radius:12px;overflow:hidden;background:#000;clear:both;"><iframe src='${embedUrl}' title='Video YouTube' width='560' height='315' style="position:absolute;inset:0;width:100%;height:100%;max-width:100%;border:0;display:block;margin:0;padding:0;" referrerpolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe></div>`;
+      html += `<div style='height:16px;line-height:0;font-size:0;clear:both;'>&nbsp;</div><div class='easy-video-responsive' style='position:relative;width:100%;max-width:100%;aspect-ratio:16 / 9;height:auto;box-sizing:border-box;margin:0;border-radius:12px;overflow:hidden;background:#000;clear:both;'><iframe src='${embedUrl}' title='Video YouTube' width='560' height='315' style='position:absolute;inset:0;width:100%;height:100%;max-width:100%;border:0;display:block;margin:0;padding:0;' referrerpolicy='strict-origin-when-cross-origin' allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share' allowfullscreen></iframe></div>`;
     }
 
     html += `</div>`;
@@ -877,7 +1316,8 @@ ${botonHTML}`;
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'DETALLE DE PRODUCTOS');
 
-    XLSX.writeFile(wb, CARGA_EMOCIONALES_FILENAME, {
+    const exportFilename = selectedMode ? 'Carga emocionales HTML seleccionados.xlsx' : CARGA_EMOCIONALES_FILENAME;
+    XLSX.writeFile(wb, exportFilename, {
       bookType: 'xlsx',
       cellStyles: true
     });
@@ -890,6 +1330,7 @@ function limpiarTodo() {
   document.getElementById('importFile').value = '';
   document.getElementById('tablesContainer').innerHTML = '<p>📂 Sin datos cargados.</p>';
   excelRows = [];
+  exportSelection.clear(); updateExportSelectionCount(); easySuggestionSelection.clear();
   alert('🧹 Se limpiaron los datos y las tablas correctamente.');
 }
 </script>
