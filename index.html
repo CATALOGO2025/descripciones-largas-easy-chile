@@ -913,8 +913,85 @@ const EASY_INFO_GROUPS=[
   {rx:/\b(?:suave|suavidad)\b/i,f:()=>`Suave al tacto`}
  ]},
  {h:/kit|set|juego/i,r:[{rx:/\b(?:kit|set|juego)\s+(?:de\s+)?(\d+)\s+piezas\b/i,f:m=>`Cantidad de piezas: ${m[1]}`}]}
+,
+ // Reglas globales: detectan información explícita aunque la categoría venga incompleta o incorrecta.
+ {h:/.*/i,r:[
+  {rx:/\b(?:potencia\s*(?:de|:)?\s*)?(\d+(?:[.,]\d+)?)\s*(w|watts?)\b/i,f:m=>`Potencia: ${m[1]} W`},
+  {rx:/\b(?:potencia\s*(?:de|:)?\s*)?(\d+(?:[.,]\d+)?)\s*(hp)\b/i,f:m=>`Potencia: ${m[1]} HP`},
+  {rx:/\b(?:voltaje\s*(?:de|:)?\s*)?(\d+(?:[.,]\d+)?)\s*(?:v|voltios?|volts?)\b/i,f:m=>`Voltaje: ${m[1]} V`},
+  {rx:/\bpresi[oó]n\s+m[aá]xima\s*(?:de|:)?\s*(\d+(?:[.,]\d+)?\s*(?:bar|psi))\b/i,f:m=>`Presión máxima: ${m[1]}`},
+  {rx:/\bpresi[oó]n\s+m[ií]nima\s*(?:de|:)?\s*(\d+(?:[.,]\d+)?\s*(?:bar|psi))\b/i,f:m=>`Presión mínima: ${m[1]}`},
+  {rx:/\bcaudal(?:\s+m[aá]ximo)?\s*(?:de|:)?\s*(\d+(?:[.,]\d+)?\s*(?:l\s*\/\s*h|l\s*\/\s*min))\b/i,f:m=>`Caudal: ${m[1].replace(/\s+/g,' ')}`},
+  {rx:/\bcobertura\s*(?:de|hasta|:)?\s*(\d+(?:[.,]\d+)?\s*m[²2])\b/i,f:m=>`Cobertura: ${m[1]}`},
+  {rx:/\bcapacidad\s*(?:de|:)?\s*(\d+(?:[.,]\d+)?\s*l)\b/i,f:m=>`Capacidad: ${m[1]}`},
+  {rx:/\b(?:velocidad\s*(?:m[aá]xima)?\s*(?:de|:)?\s*)?(\d[\d.]*)\s*rpm\b/i,f:m=>`Velocidad: ${m[1]} RPM`},
+  {rx:/\b(\d{1,2})\s+(?:niveles?)\b/i,f:m=>`Cantidad de niveles: ${m[1]}`},
+  {rx:/\b(\d{1,2})\s+(?:escalones?|peldaños?)\b/i,f:m=>`Cantidad de escalones: ${m[1]}`},
+  {rx:/\b(?:set|kit|juego)(?:\s+de)?\s*(\d{1,3})\s+piezas\b/i,f:m=>`Piezas incluidas: ${m[1]}`},
+  {rx:/\b(\d{1,3})\s+piezas\s+incluidas\b/i,f:m=>`Piezas incluidas: ${m[1]}`},
+  {rx:/\baccesorios?\s+incluidos?\s*(?:[:\-]\s*)?([^.;\n]{2,70})/i,f:m=>`Accesorios incluidos: ${m[1].trim()}`},
+  {rx:/\buso\s+(dom[eé]stico|profesional|industrial)\b/i,f:m=>`Tipo de uso: ${m[1]}`},
+  {rx:/\b(?:capacidad\s+de\s+carga|carga\s+m[aá]xima|soporta(?:\s+hasta)?)\s*(?:de|:)?\s*(\d+(?:[.,]\d+)?\s*kg)(?:\s+(por|cada)\s+(nivel|repisa|bandeja))?\b/i,f:m=>m[2]?`Capacidad de carga: ${m[1]} por ${m[3]}`:`Capacidad de carga: ${m[1]}`},
+  {rx:/\bcon\s+ruedas\b/i,f:()=>`Con ruedas`},
+  {rx:/\bplegable\b/i,f:()=>`Plegable`},
+  {rx:/\b(?:ajustable|regulable)\b/i,f:()=>`Ajustable`},
+  {rx:/\bapilable\b/i,f:()=>`Apilable`},
+  {rx:/\bport[aá]til\b/i,f:()=>`Portátil`},
+  {rx:/\blavable\b/i,f:()=>`Lavable`},
+  {rx:/\breutilizable\b/i,f:()=>`Reutilizable`},
+  {rx:/\bantideslizante\b/i,f:()=>`Antideslizante`},
+  {rx:/\bimpermeable\b/i,f:()=>`Impermeable`},
+  {rx:/\bresistente\s+al\s+agua\b/i,f:()=>`Resistente al agua`},
+  {rx:/\btipo\s+de\s+instalaci[oó]n\s*(?:de|:)?\s*([^.;\n]{2,45})/i,f:m=>`Tipo de instalación: ${m[1].trim()}`},
+  {rx:/\binstalaci[oó]n\s+(mural|sobre\s+cubierta|empotrada|sobrepuesta|de\s+piso|a\s+muro)\b/i,f:m=>`Tipo de instalación: ${m[1]}`},
+  {rx:/\bacabado\s*(?:de|:)?\s*([^.;\n]{2,35})/i,f:m=>`Acabado: ${m[1].trim()}`},
+  {rx:/\bdi[aá]metro\s+(?:de\s+)?conexi[oó]n\s*(?:de|:)?\s*([^.;\n]{1,25})/i,f:m=>`Diámetro de conexión: ${m[1].trim()}`},
+  {rx:/\btipo\s+de\s+gas\s*(?:de|:)?\s*(gas\s+licuado|gas\s+natural|licuado|natural)\b/i,f:m=>`Tipo de gas: ${m[1]}`},
+  {rx:/\b(?:funciona|compatible|para)\s+con\s+(gas\s+licuado|gas\s+natural)\b/i,f:m=>`Tipo de gas: ${m[1]}`},
+  {rx:/\b(?:tipo\s+de\s+)?encendido\s*(?:de|:)?\s*(autom[aá]tico|manual|electr[oó]nico|piezoel[eé]ctrico)\b/i,f:m=>`Tipo de encendido: ${m[1]}`},
+  {rx:/\bc[aá]mara\s+(abierta|cerrada|estanca)\b/i,f:m=>`Tipo de cámara: ${m[1]}`},
+  {rx:/\btiempo\s+de\s+recuperaci[oó]n\s*(?:de|:)?\s*(\d+(?:[.,]\d+)?\s*(?:h|hrs?|horas?|min|minutos?))\b/i,f:m=>`Tiempo de recuperación: ${m[1].trim()}`},
+  {rx:/\bautonom[ií]a\s*(?:de|:)?\s*(\d+(?:[.,]\d+)?\s*(?:h|hrs?|horas?|min|minutos?))\b/i,f:m=>`Autonomía: ${m[1].trim()}`},
+  {rx:/\btiempo\s+de\s+carga\s*(?:de|:)?\s*(\d+(?:[.,]\d+)?\s*(?:h|hrs?|horas?|min|minutos?))\b/i,f:m=>`Tiempo de carga: ${m[1].trim()}`},
+  {rx:/\b(?:capacidad\s+de\s+)?bater[ií]a\s*(?:de|:)?\s*(\d+(?:[.,]\d+)?\s*(?:ah|mah))\b/i,f:m=>`Capacidad de batería: ${m[1]}`},
+  {rx:/\bbater[ií]a\s+incluida\b/i,f:()=>`Batería incluida`},
+  {rx:/\bcargador\s+incluido\b/i,f:()=>`Cargador incluido`},
+  {rx:/\b(\d+(?:[.,]\d+)?)\s*(?:lm|l[uú]menes)\b/i,f:m=>`Flujo luminoso: ${m[1]} lm`},
+  {rx:/\b(?:temperatura\s+de\s+color\s*(?:de|:)?\s*)?(\d{4,5})\s*k\b/i,f:m=>`Temperatura de color: ${m[1]} K`},
+  {rx:/\b(?:grado\s+de\s+protecci[oó]n\s*(?:de|:)?\s*)?(ip\d{2})\b/i,f:m=>`Grado de protección: ${m[1].toUpperCase()}`},
+  {rx:/\b(\d[\d.,]*)\s*btu\b/i,f:m=>`Capacidad: ${m[1]} BTU`},
+  {rx:/\bcontrol\s+remoto\s+incluido\b/i,f:()=>`Control remoto incluido`},
+  {rx:/\btemporizador\b|\btimer\b/i,f:()=>`Temporizador`},
+  {rx:/\b(\d{1,2})\s+cajones?\b/i,f:m=>`Cantidad de cajones: ${m[1]}`},
+  {rx:/\b(\d{1,2})\s+puertas?\b/i,f:m=>`Cantidad de puertas: ${m[1]}`},
+  {rx:/\b(\d{1,2})\s+repisas?\b/i,f:m=>`Cantidad de repisas: ${m[1]}`},
+  {rx:/\brendimiento\s*(?:aproximado)?\s*(?:de|:)?\s*([\d.,]+\s*(?:m[²2](?:\s*\/\s*l)?|m2(?:\s*\/\s*l)?|l\s*\/\s*h|kg\s*\/\s*h|%))\b/i,f:m=>`Rendimiento: ${m[1].replace(/\s+/g,' ')}`},
+  {rx:/\brendimiento\s+(?:constante|consistente)\b/i,f:()=>`Rendimiento constante`},
+  {rx:/\btiempo\s+de\s+secado\s*(?:de|:)?\s*([^.;\n]{1,35})/i,f:m=>`Tiempo de secado: ${m[1].trim()}`},
+  {rx:/\b(\d+)\s+manos\b/i,f:m=>`Manos recomendadas: ${m[1]}`},
+  {rx:/\b([\d.,]+)\s*m[²2]\s*(?:por|\/)\s*caja\b/i,f:m=>`Rendimiento por caja: ${m[1]} m²`},
+  {rx:/\b(\d+)\s+piezas?\s+(?:por\s+)?caja\b/i,f:m=>`Piezas por caja: ${m[1]}`},
+  {rx:/\bespesor\s*(?:de|:|es\s+de)?\s*(\d+(?:[.,]\d+)?\s*(?:mm|cm|m))\b/i,f:m=>`Espesor: ${m[1].trim()}`},
+  {rx:/\b(\d+)\s+quemadores?\b/i,f:m=>`Cantidad de quemadores: ${m[1]}`},
+  {rx:/\btemperatura\s+m[aá]xima\s*(?:de|:)?\s*(\d+(?:[.,]\d+)?\s*°?\s*c)\b/i,f:m=>`Temperatura máxima: ${m[1].replace(/\s+/g,' ').trim()}`},
+  {rx:/\bsuperficie\s+de\s+cocci[oó]n\s*(?:de|:)?\s*([^.;\n]{1,35})/i,f:m=>`Superficie de cocción: ${m[1].trim()}`},
+  {rx:/\bapt[oa]\s+para\s+horno(?:\s+hasta\s+([^.;\n]{1,20}))?/i,f:m=>m[1]?`Apto para horno hasta ${m[1].trim()}`:`Apto para horno`}
+ ]}
 ];
 const EASY_CARE_RULES=[
+ // Reglas generales ampliadas
+ [/\bevitar\s+(?:el\s+)?contacto\s+con\s+(?:el\s+)?agua\b/i,'Evitar contacto con agua'],
+ [/\blimpiar\s+(?:despu[eé]s|luego)\s+de\s+(?:cada\s+)?uso\b/i,'Limpiar después de usar'],
+ [/\bmantener\s+limpio\b/i,'Mantener limpio'],
+ [/\bmantener\s+ventilad[oa]\b/i,'Mantener ventilado'],
+ [/\bevitar\s+(?:la\s+)?exposici[oó]n\s+(?:directa\s+)?al\s+sol\b/i,'Evitar sol directo'],
+ [/\bmantener\s+(?:alejado|lejos)\s+de\s+(?:fuentes?\s+de\s+)?calor\b/i,'Alejar de fuentes de calor'],
+ [/\brevisar\s+(?:las\s+)?conexiones\b/i,'Revisar conexiones'],
+ [/\brevisar\s+antes\s+de\s+(?:usar|utilizar)\b/i,'Revisar antes de usar'],
+ [/\bno\s+sobrecargar\b/i,'No sobrecargar'],
+ [/\b(?:usar|utilizar)\s+(?:en\s+)?(?:una\s+)?superficie\s+estable\b/i,'Usar en superficie estable'],
+ [/\buso\s+en\s+interiores\b/i,'Uso en interiores'],
+ [/\balmacenar\s+bajo\s+techo\b/i,'Almacenar bajo techo'],
  // Textil / lavado
  [/\bno\s+planchar\b/i,'No planchar'],
  [/\blav(?:a|ar|ado)[^.;\n]{0,35}antes\s+del\s+primer\s+uso\b/i,'Lavar antes del uso'],
@@ -967,6 +1044,15 @@ const EASY_CARE_RULES=[
 ];
 function easyText(row){return [get(row,['Nombre del Producto','Nombre Producto','Producto']),get(row,['Meta Descripción','Meta Descripcion','Descripción corta','Descripcion corta']),get(row,['Descripción larga','Descripcion larga','Descripción Larga','Descripcion Larga','Descripción'])].join(' ')}
 function easyContext(row){return [get(row,['Categoría','Categoria','Ruta Path','Departamento','Subcategoría','Subcategoria','Tipo de Producto','Tipo Producto']),easyText(row)].join(' ')}
+function easyConceptKey(value){
+  let k=String(value||'').toLowerCase().split(':')[0].trim().replace(/\s+/g,' ');
+  const aliases={
+    'cantidad de piezas':'piezas','piezas incluidas':'piezas','piezas por caja':'piezas por caja','cantidad de piezas por caja':'piezas por caja',
+    'carga máxima':'capacidad de carga','carga máxima por nivel':'capacidad de carga por nivel',
+    'cantidad de niveles':'niveles','niveles':'niveles'
+  };
+  return aliases[k]||k;
+}
 function easyArray(row,key){return String(row[key]||'').split('|').map(x=>x.trim()).filter(Boolean)}
 function easySetArray(row,key,a){row[key]=Array.from(new Set(a)).join(' | ')}
 function escEasy(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
@@ -1011,11 +1097,57 @@ function renderEasyQualityPanel(){
   <div class="quality-footer"><span>Mostrando ${total?from+1:0}–${Math.min(from+easyQualityUI.pageSize,total)} de ${total} SKU</span>${pages>1?`<div class="quality-page-actions"><button type="button" onclick="setEasyQualityPage(-1)" ${easyQualityUI.page<=1?'disabled':''}>‹ Anterior</button><span style="padding:5px 4px">${easyQualityUI.page} / ${pages}</span><button type="button" onclick="setEasyQualityPage(1)" ${easyQualityUI.page>=pages?'disabled':''}>Siguiente ›</button></div>`:''}</div></details>`;
 }
 
+function easyNormalizeSuggestion(value){
+  let v=String(value||'')
+    .replace(/<[^>]*>/g,' ')
+    .replace(/\*/g,'')
+    .replace(/\s+/g,' ')
+    .replace(/\s+([,.;:])/g,'$1')
+    .trim();
+  if(!v) return '';
+
+  // Nunca convertir prosa de marketing en chips largos. Solo resumir cuando el concepto es explícito.
+  if(/^Rendimiento:/i.test(v)){
+    const rhs=v.split(':').slice(1).join(':').trim();
+    if(/\b(?:constante|consistente)\b/i.test(rhs) && !/\d/.test(rhs)) return 'Rendimiento constante';
+    if(/\balto\s+rendimiento\b/i.test(rhs) && !/\d/.test(rhs)) return 'Alto rendimiento';
+  }
+  return v;
+}
+function easyValidSuggestion(value){
+  const v=easyNormalizeSuggestion(value);
+  if(!v || v.length<3 || v.length>90) return false;
+  const hasColon=v.includes(':');
+  const rhs=(hasColon?v.split(':').slice(1).join(':'):v).trim();
+  if(!rhs) return false;
+  if(/\b(?:de|del|para|con|en|y|o|que|por|a|al|una?|las?|los?)$/i.test(rhs)) return false;
+  if(/[,:;\-–—]\s*$/.test(rhs)) return false;
+  if(/^(?:calidad|alta calidad|excelente calidad)(?:\s|$)/i.test(rhs)) return false;
+
+  // Frases narrativas o comerciales no deben transformarse en chips.
+  const prose=/\b(?:protege|permite|ofrece|facilita|ayuda|brinda|entrega|garantiza|favorece|contribuye|mejora|ideal\s+para|diseñad[oa]\s+para|pensad[oa]\s+para|durante\s+actividades|que\s+exigen|que\s+permite)\b/i;
+  if(prose.test(rhs)) return false;
+  const words=rhs.split(/\s+/).filter(Boolean);
+  if(hasColon && words.length>7) return false;
+  if(!hasColon && words.length>5) return false;
+
+  // Campos que deben contener valores concretos, no una oración.
+  if(/^Acabado:/i.test(v)){
+    const a=rhs.toLowerCase().replace(/^en\s+(?:color\s+)?/,'').trim();
+    if(!/^(?:mate|brillante|satinado|cromado|pulido|texturizado|galvanizado|esmaltado|cepillado|lacado|natural|pintado|negro|blanco|gris|plateado|dorado|cobre|cobrizo|inoxidable)(?:\s+(?:mate|brillante|satinado|cromado|pulido|texturizado|galvanizado|esmaltado|cepillado|lacado|natural|negro|blanco|gris|plateado|dorado|cobre|cobrizo|inoxidable))*$/i.test(a)) return false;
+  }
+  if(/^Rendimiento:/i.test(v) && !/\d/.test(rhs)) return false;
+  if(/^(?:Tiempo de carga|Tiempo de recuperación|Autonomía|Espesor|Temperatura máxima):/i.test(v) && !/\d/.test(rhs)) return false;
+  if(/^(?:Tiempo de secado|Tiempo de carga|Tiempo de recuperación|Autonomía|Espesor|Temperatura máxima|Superficie de cocción|Diámetro de conexión):/i.test(v) && words.length>5) return false;
+  // Rechazar fragmentos con estructura de oración, incluso si no terminan en preposición.
+  if(/\b(?:es|son|desde|hasta|cuando|mientras|además|también|elementos?|superficies?|actividades?|sector|trabajos?)\b/i.test(rhs) && !/^(?:Tipo de instalación|Tipo de gas|Tipo de encendido|Tipo de cámara):/i.test(v)) return false;
+  return true;
+}
 function detectEasySuggestions(scrollToModule=false){
  easySuggestions=[];
  excelRows.forEach((row,rowIndex)=>{const text=easyText(row),ctx=easyContext(row),sku=get(row,['SKU']); const seen=new Set();
-  EASY_INFO_GROUPS.forEach(g=>{if(!g.h.test(ctx))return;g.r.forEach(rule=>{const m=text.match(rule.rx);if(m){const value=rule.f(m);const k='i|'+value.toLowerCase();if(!seen.has(k)&&!easyArray(row,'Información Adicional').includes(value)){seen.add(k);easySuggestions.push({type:'info',rowIndex,sku,value,source:m[0],status:'Sugerencia'});}}});});
-  EASY_CARE_RULES.forEach(([rx,value])=>{const m=text.match(rx);const k='c|'+value.toLowerCase();if(m&&!seen.has(k)&&!easyArray(row,'Cuidados de Uso').includes(value)){seen.add(k);easySuggestions.push({type:'care',rowIndex,sku,value,source:m[0],status:'Sugerencia'});}});
+  EASY_INFO_GROUPS.forEach(g=>{if(!g.h.test(ctx))return;g.r.forEach(rule=>{const m=text.match(rule.rx);if(m){const rawValue=rule.f(m);const value=easyNormalizeSuggestion(rawValue);if(!easyValidSuggestion(value))return;const k='i|'+easyConceptKey(value);const existing=easyArray(row,'Información Adicional').map(easyNormalizeSuggestion);if(!seen.has(k)&&!existing.includes(value)&&!existing.some(v=>easyConceptKey(v)===easyConceptKey(value))){seen.add(k);easySuggestions.push({type:'info',rowIndex,sku,value,source:String(m[0]||'').replace(/\*/g,''),status:'Sugerencia'});}}});});
+  EASY_CARE_RULES.forEach(([rx,rawValue])=>{const m=text.match(rx);const value=easyNormalizeSuggestion(rawValue);const k='c|'+value.toLowerCase();const existing=easyArray(row,'Cuidados de Uso').map(easyNormalizeSuggestion);if(m&&value&&!seen.has(k)&&!existing.includes(value)){seen.add(k);easySuggestions.push({type:'care',rowIndex,sku,value,source:String(m[0]||'').replace(/\*/g,''),status:'Sugerencia'});}});
  }); renderEasySuggestions(); renderEasyQualityPanel();
  if(scrollToModule){setTimeout(()=>{const el=document.getElementById('easySuggestionsCard');if(el){el.scrollIntoView({behavior:'smooth',block:'start'});}},80);}
 }
