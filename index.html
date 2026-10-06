@@ -967,8 +967,23 @@ const EASY_CARE_RULES=[
 ];
 function easyText(row){return [get(row,['Nombre del Producto','Nombre Producto','Producto']),get(row,['Meta Descripción','Meta Descripcion','Descripción corta','Descripcion corta']),get(row,['Descripción larga','Descripcion larga','Descripción Larga','Descripcion Larga','Descripción'])].join(' ')}
 function easyContext(row){return [get(row,['Categoría','Categoria','Ruta Path','Departamento','Subcategoría','Subcategoria','Tipo de Producto','Tipo Producto']),easyText(row)].join(' ')}
-function easyArray(row,key){return String(row[key]||'').split('|').map(x=>x.trim()).filter(Boolean)}
-function easySetArray(row,key,a){row[key]=Array.from(new Set(a)).join(' | ')}
+function easyCollapseRedundantInfoValues(values){
+  const a=Array.from(new Set((values||[]).map(v=>String(v||'').trim()).filter(Boolean)));
+  const low=new Set(a.map(v=>v.toLowerCase()));
+  // Si existe la opción completa, no mostrar ni guardar sus versiones parciales.
+  if(low.has('uso interior y exterior')){
+    return a.filter(v=>!['uso interior','uso exterior'].includes(v.toLowerCase()));
+  }
+  return a;
+}
+function easyArray(row,key){
+  const a=String(row[key]||'').split('|').map(x=>x.trim()).filter(Boolean);
+  return key==='Información Adicional' ? easyCollapseRedundantInfoValues(a) : a;
+}
+function easySetArray(row,key,a){
+  const clean=key==='Información Adicional' ? easyCollapseRedundantInfoValues(a) : Array.from(new Set(a));
+  row[key]=clean.join(' | ');
+}
 function escEasy(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
 function easyGet(row,keys){for(const k of keys){if(row&&row[k]!==undefined&&row[k]!==null&&String(row[k]).trim()!=='')return String(row[k]);}return '';}
 function evaluateEasyQuality(row,rowIndex){
@@ -1015,12 +1030,18 @@ function detectEasySuggestions(scrollToModule=false){
  easySuggestions=[];
  excelRows.forEach((row,rowIndex)=>{const text=easyText(row),ctx=easyContext(row),sku=get(row,['SKU']); const seen=new Set();
   EASY_INFO_GROUPS.forEach(g=>{if(!g.h.test(ctx))return;g.r.forEach(rule=>{const m=text.match(rule.rx);if(m){const value=rule.f(m);const k='i|'+value.toLowerCase();if(!seen.has(k)&&!easyArray(row,'Información Adicional').includes(value)){seen.add(k);easySuggestions.push({type:'info',rowIndex,sku,value,source:m[0],status:'Sugerencia'});}}});});
+  // Evita sugerencias solapadas: si existe una opción más completa, elimina las parciales.
+  const rowInfo=easySuggestions.filter(x=>x.rowIndex===rowIndex&&x.type==='info'&&x.status==='Sugerencia');
+  const rowInfoValues=new Set(rowInfo.map(x=>x.value.toLowerCase()));
+  if(rowInfoValues.has('uso interior y exterior')){
+    easySuggestions=easySuggestions.filter(x=>!(x.rowIndex===rowIndex&&x.type==='info'&&['uso interior','uso exterior'].includes(x.value.toLowerCase())));
+  }
   EASY_CARE_RULES.forEach(([rx,value])=>{const m=text.match(rx);const k='c|'+value.toLowerCase();if(m&&!seen.has(k)&&!easyArray(row,'Cuidados de Uso').includes(value)){seen.add(k);easySuggestions.push({type:'care',rowIndex,sku,value,source:m[0],status:'Sugerencia'});}});
  }); renderEasySuggestions(); renderEasyQualityPanel();
  if(scrollToModule){setTimeout(()=>{const el=document.getElementById('easySuggestionsCard');if(el){el.scrollIntoView({behavior:'smooth',block:'start'});}},80);}
 }
-function applyEasySuggestion(i,silent=false){const s=easySuggestions[i];if(!s||s.status!=='Sugerencia')return;const row=excelRows[s.rowIndex],key=s.type==='info'?'Información Adicional':'Cuidados de Uso';const a=easyArray(row,key);if(!a.includes(s.value))a.push(s.value);easySetArray(row,key,a);s.status='Aplicado';cleanupEasyRedundantListItems(row,s.rowIndex);if(!silent){renderEasySuggestions();renderEasyQualityPanel();updateTables();}}
-function ignoreEasySuggestion(i){if(easySuggestions[i]){easySuggestions[i].status='Ignorado';renderEasySuggestions();renderEasyQualityPanel();}}
+function applyEasySuggestion(i,silent=false){const s=easySuggestions[i];if(!s||s.status!=='Sugerencia')return;const row=excelRows[s.rowIndex],key=s.type==='info'?'Información Adicional':'Cuidados de Uso';const a=easyArray(row,key);if(!a.includes(s.value))a.push(s.value);easySetArray(row,key,a);s.status='Aplicado';cleanupEasyRedundantListItems(row,s.rowIndex);if(!silent){easySuggestionOpenState[s.type]=false;renderEasySuggestions();renderEasyQualityPanel();updateTables();alert('✅ Cambios aplicados');}}
+function ignoreEasySuggestion(i){const s=easySuggestions[i];if(s&&s.status==='Sugerencia'){s.status='Ignorado';easySuggestionOpenState[s.type]=false;renderEasySuggestions();renderEasyQualityPanel();alert('✅ Cambios aplicados');}}
 function applyEasyGroup(type,rowIndex){easySuggestions.forEach((s,i)=>{if(s.type===type&&s.rowIndex===rowIndex&&s.status==='Sugerencia')applyEasySuggestion(i,true)});renderEasySuggestions();renderEasyQualityPanel();updateTables();}
 function applyAllEasy(){easySuggestions.forEach((s,i)=>{if(s.status==='Sugerencia')applyEasySuggestion(i,true)});renderEasySuggestions();renderEasyQualityPanel();updateTables();}
 function renderEasySuggestions(){
@@ -1055,12 +1076,19 @@ function renderEasySuggestions(){
 function applySelectedEasyType(type){
   const ids=[...easySuggestionSelection].filter(i=>easySuggestions[i]&&easySuggestions[i].type===type&&easySuggestions[i].status==='Sugerencia');
   if(!ids.length) return alert('☑️ Selecciona al menos una sugerencia de esta sección.');
-  let approved=0;
-  ids.forEach(i=>{ if(easySuggestions[i]&&easySuggestions[i].status==='Sugerencia'){ applyEasySuggestion(i,true); approved++; } easySuggestionSelection.delete(i); });
+  ids.forEach(i=>{ if(easySuggestions[i]&&easySuggestions[i].status==='Sugerencia') applyEasySuggestion(i,true); easySuggestionSelection.delete(i); });
+  easySuggestionOpenState[type]=false;
   renderEasySuggestions(); renderEasyQualityPanel(); updateTables();
-  alert(approved===1?'✅ Se aprobó 1 sugerencia':'✅ Se aprobaron '+approved+' sugerencias');
+  alert('✅ Cambios aplicados');
 }
-function applyEasyType(type){ easySuggestions.forEach((s,i)=>{if(s.type===type&&s.status==='Sugerencia')applyEasySuggestion(i,true)}); easySuggestionSelection.clear(); renderEasySuggestions();renderEasyQualityPanel();updateTables(); }
+function applyEasyType(type){
+  let changed=false;
+  easySuggestions.forEach((s,i)=>{if(s.type===type&&s.status==='Sugerencia'){applyEasySuggestion(i,true);changed=true;}});
+  easySuggestionSelection.clear();
+  easySuggestionOpenState[type]=false;
+  renderEasySuggestions(); renderEasyQualityPanel(); updateTables();
+  if(changed) alert('✅ Cambios aplicados');
+}
 
 function buildEasyInfoChips(row){const info=easyArray(row,'Información Adicional');if(!info.length)return '';return `<div style='margin:8px 0 14px 0;'><div style='display:flex;flex-wrap:wrap;gap:7px;'>${info.map(v=>`<span style='display:inline-block;background:#fff8ed;border:1px solid #f2c48d;color:#9a4d00;border-radius:7px;padding:5px 9px;font-size:13px;'>${v}</span>`).join('')}</div></div>`;}
 function buildEasyCareChips(row){const care=easyArray(row,'Cuidados de Uso');if(!care.length)return '';return `<div style='margin:14px 0;'><div style='font-weight:700;margin-bottom:7px;color:#2c3e50;'>Cuidados de Uso</div><div style='display:flex;flex-wrap:wrap;gap:7px;'>${care.map(v=>`<span style='display:inline-block;background:#f5f7fa;border:1px solid #d9e0e7;color:#344054;border-radius:7px;padding:5px 9px;font-size:13px;'>${v}</span>`).join('')}</div></div>`;}
