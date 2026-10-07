@@ -403,6 +403,89 @@ br.pre-h4{display:block;margin:0 0 0 0;}
   }
 }
 
+
+
+/* ==== Franja técnica Easy: layout base ==== */
+.easy-tech-strip {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: stretch !important;
+}
+.easy-tech-strip .easy-tech-separator {
+  display: block !important;
+  width: 1px !important;
+  min-width: 1px !important;
+  height: auto !important;
+  min-height: 0 !important;
+  align-self: stretch !important;
+  background: #e5e7eb !important;
+  flex: 0 0 1px !important;
+  margin: 10px 0 !important;
+}
+
+/* ==== Franja técnica Easy: vertical y centrada en Mobile/App ==== */
+@media (max-width: 1200px), (max-device-width: 768px) {
+  .easy-tech-strip {
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+  .easy-tech-strip .easy-tech-item {
+    width: 100% !important;
+    flex: 0 0 auto !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-align: center !important;
+    gap: 6px !important;
+    padding: 14px 16px !important;
+  }
+  .easy-tech-strip .easy-tech-copy,
+  .easy-tech-strip .easy-tech-label,
+  .easy-tech-strip .easy-tech-value {
+    width: 100% !important;
+    text-align: center !important;
+  }
+  .easy-tech-strip .easy-tech-separator {
+    width: calc(100% - 32px) !important;
+    min-width: 0 !important;
+    height: 1px !important;
+    min-height: 1px !important;
+    flex: 0 0 1px !important;
+    margin: 0 16px !important;
+    align-self: center !important;
+  }
+}
+
+/* La vista App fuerza el mismo formato aunque el navegador sea más ancho */
+.easy-preview-viewport.easy-preview-app .easy-tech-strip {
+  flex-direction: column !important;
+  align-items: stretch !important;
+}
+.easy-preview-viewport.easy-preview-app .easy-tech-strip .easy-tech-item {
+  width: 100% !important;
+  flex: 0 0 auto !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  text-align: center !important;
+  gap: 6px !important;
+  padding: 14px 16px !important;
+}
+.easy-preview-viewport.easy-preview-app .easy-tech-strip .easy-tech-copy,
+.easy-preview-viewport.easy-preview-app .easy-tech-strip .easy-tech-label,
+.easy-preview-viewport.easy-preview-app .easy-tech-strip .easy-tech-value {
+  width: 100% !important;
+  text-align: center !important;
+}
+.easy-preview-viewport.easy-preview-app .easy-tech-strip .easy-tech-separator {
+  width: calc(100% - 32px) !important;
+  min-width: 0 !important;
+  height: 1px !important;
+  min-height: 1px !important;
+  flex: 0 0 1px !important;
+  margin: 0 16px !important;
+  align-self: center !important;
+}
 </style>
 <style>
 
@@ -790,7 +873,7 @@ function importExcel() {
     const sheet = workbook.Sheets[workbook.SheetNames[0]];
     excelRows = XLSX.utils.sheet_to_json(sheet, { defval: "", raw: false });
     exportSelection.clear(); updateExportSelectionCount(); easySuggestionSelection.clear();
-    easySuggestions=[]; const sc=document.getElementById('easySuggestionsCard'); if(sc) sc.style.display='none'; const qp=document.getElementById('qualityPanel'); if(qp){qp.style.display='none';qp.innerHTML='';}
+    easySuggestions=[]; easySuggestionBaselines.clear(); const sc=document.getElementById('easySuggestionsCard'); if(sc) sc.style.display='none'; const qp=document.getElementById('qualityPanel'); if(qp){qp.style.display='none';qp.innerHTML='';}
     if (!excelRows.length) return alert('❌ No se encontraron filas en el Excel.');
     renderEasyQualityPanel();
     alert('📁 Excel cargado correctamente. Puedes visualizar las tablas.');
@@ -805,8 +888,19 @@ function get(row, keys) {
   return "";
 }
 
+function getFirstNonEmpty(row, keys) {
+  for (const k of keys) {
+    if (k in row && row[k] !== undefined && row[k] !== null) {
+      const v = String(row[k]).trim();
+      if (v) return v;
+    }
+  }
+  return "";
+}
+
 // === EASY: Sugerencias de Información Adicional y Cuidados de Uso ===
 let easySuggestions=[];
+const easySuggestionBaselines = new Map();
 const EASY_INFO_GROUPS=[
  {h:/escaler|escalon|peldañ/i,r:[
   {l:'Cantidad de escalones',rx:/\b(\d{1,2})\s+(?:escalones?|peldaños?)\b/i,f:m=>`Cantidad de escalones: ${m[1]}`},
@@ -1026,21 +1120,328 @@ function renderEasyQualityPanel(){
   <div class="quality-footer"><span>Mostrando ${total?from+1:0}–${Math.min(from+easyQualityUI.pageSize,total)} de ${total} SKU</span>${pages>1?`<div class="quality-page-actions"><button type="button" onclick="setEasyQualityPage(-1)" ${easyQualityUI.page<=1?'disabled':''}>‹ Anterior</button><span style="padding:5px 4px">${easyQualityUI.page} / ${pages}</span><button type="button" onclick="setEasyQualityPage(1)" ${easyQualityUI.page>=pages?'disabled':''}>Siguiente ›</button></div>`:''}</div></details>`;
 }
 
+function cleanTechnicalValue(value){
+  return String(value||'')
+    .replace(/\*+/g,'')
+    .replace(/<[^>]*>/g,' ')
+    .replace(/\s+/g,' ')
+    .replace(/^[\s:;,.\-]+|[\s:;,.\-]+$/g,'')
+    .trim();
+}
+
+function extractEasyDimensions(text){
+  const t=cleanTechnicalValue(text).replace(/×/g,'x');
+  const found=[];
+  const push=(label,value,source)=>{ value=cleanTechnicalValue(value); if(!value)return; if(!found.some(x=>x.label===label))found.push({label,value,source:cleanTechnicalValue(source)}); };
+  let m;
+  // Formato "95 cm de ancho por 200 cm de alto"
+  const pair=/\b(\d+(?:[.,]\d+)?)\s*(mm|cm|m)\s+de\s+(ancho|alto|altura|profundidad|largo|di[aá]metro)\s+(?:por|x)\s+(\d+(?:[.,]\d+)?)\s*(mm|cm|m)\s+de\s+(ancho|alto|altura|profundidad|largo|di[aá]metro)\b/i.exec(t);
+  if(pair){
+    push(pair[3].toLowerCase().replace('altura','alto').replace('diámetro','diametro'), pair[1]+' '+pair[2], pair[0]);
+    push(pair[6].toLowerCase().replace('altura','alto').replace('diámetro','diametro'), pair[4]+' '+pair[5], pair[0]);
+  }
+  // Formato "ancho de 90 cm y alto de 210 cm"
+  const labeled=/(ancho|alto|altura|profundidad|largo|di[aá]metro)\s*(?:de|:)?\s*(\d+(?:[.,]\d+)?)\s*(mm|cm|m)\b/ig;
+  while((m=labeled.exec(t))){ push(m[1].toLowerCase().replace('altura','alto').replace('diámetro','diametro'),m[2]+' '+m[3],m[0]); }
+  // Formato "45 mm de espesor" (se conserva como dimensión)
+  const postfix=/(\d+(?:[.,]\d+)?)\s*(mm|cm|m)\s+de\s+(ancho|alto|altura|profundidad|largo|di[aá]metro|espesor)\b/ig;
+  while((m=postfix.exec(t))){ push(m[3].toLowerCase().replace('altura','alto').replace('diámetro','diametro'),m[1]+' '+m[2],m[0]); }
+  // Formato compacto "75 x 210 cm" o "28 x 22 x 5.3 cm"
+  if(!found.length){
+    const compact=/\b(\d+(?:[.,]\d+)?\s*x\s*\d+(?:[.,]\d+)?(?:\s*x\s*\d+(?:[.,]\d+)?)?)\s*(mm|cm|m)\b/i.exec(t);
+    if(compact) return {value:cleanTechnicalValue(compact[1].replace(/\s*x\s*/g,' x ')+' '+compact[2]),source:cleanTechnicalValue(compact[0])};
+  }
+  if(!found.length)return null;
+  const order=['ancho','alto','profundidad','largo','diametro','espesor'];
+  found.sort((a,b)=>order.indexOf(a.label)-order.indexOf(b.label));
+  const pretty={ancho:'ancho',alto:'alto',profundidad:'profundidad',largo:'largo',diametro:'diámetro',espesor:'espesor'};
+  const value=found.map(x=>`${x.value} (${pretty[x.label]||x.label})`).join(' x ');
+  const source=[...new Set(found.map(x=>x.source).filter(Boolean))].join(' · ');
+  return {value,source};
+}
+
+function extractEasyMaterial(text){
+  const t=cleanTechnicalValue(text);
+  // Lista cerrada para evitar capturar frases completas o incompletas.
+  const materials=[
+    'acero inoxidable','acero galvanizado','acero de alta resistencia','acero de alta calidad','acero al carbono','acero',
+    'aluminio','hierro fundido','hierro','madera de acacia','madera maciza','madera','melamina','mdf','terciado','plywood',
+    'vidrio templado','vidrio','cerámica','porcelanato','pvc','polipropileno','polietileno','plástico','abs','goma','caucho',
+    'granito','mármol','cuarzo','cemento','hormigón','cobre','bronce','latón','zinc','fibra de vidrio','fibra de carbono'
+  ];
+  const esc=v=>v.replace(/[.*+?^${}()|[\]\\]/g,'\\$&').replace(/\s+/g,'\\s+');
+  const rx=new RegExp('\\b('+materials.sort((a,b)=>b.length-a.length).map(esc).join('|')+')\\b','i');
+  const m=t.match(rx);
+  if(!m)return null;
+  let value=cleanTechnicalValue(m[1]);
+  value=value.charAt(0).toUpperCase()+value.slice(1);
+  return {value,source:value};
+}
+
+function extractEasyWeight(text){
+  const t=cleanTechnicalValue(text);
+  const rules=[
+    {label:'Peso neto',key:'Peso neto',rx:/\bpeso\s+neto\s*(?:de|:)?\s*(\d+(?:[.,]\d+)?)\s*(kg|g|gr|gramos?|lb|lbs)\b/i},
+    {label:'Peso bruto',key:'Peso bruto',rx:/\bpeso\s+bruto\s*(?:de|:)?\s*(\d+(?:[.,]\d+)?)\s*(kg|g|gr|gramos?|lb|lbs)\b/i},
+    {label:'Peso producto',key:'Peso Producto',rx:/\bpeso\s+(?:del\s+)?producto\s*(?:de|:)?\s*(\d+(?:[.,]\d+)?)\s*(kg|g|gr|gramos?|lb|lbs)\b/i},
+    {label:'Peso',key:'Peso',rx:/\bpeso\s*(?:de|:)?\s*(\d+(?:[.,]\d+)?)\s*(kg|g|gr|gramos?|lb|lbs)\b/i}
+  ];
+  for(const r of rules){
+    const m=t.match(r.rx);
+    if(m){
+      const unit=/^gr|gram/i.test(m[2])?'g':m[2];
+      return {value:cleanTechnicalValue(m[1]+' '+unit),source:cleanTechnicalValue(m[0]),label:r.label,key:r.key};
+    }
+  }
+  return null;
+}
+
+function technicalIcon(type){
+  // Iconos construidos sólo con HTML/CSS inline para evitar problemas de renderizado SVG.
+  if(type==='dimensiones'){
+    return `<span aria-hidden="true" style="display:flex !important;align-items:center !important;justify-content:center !important;width:40px !important;min-width:40px !important;height:40px !important;flex:0 0 40px !important;color:#ff6200 !important;font-size:34px !important;font-weight:400 !important;line-height:1 !important;font-family:Arial,sans-serif !important;">↔</span>`;
+  }
+  if(type==='peso'){
+    return `<span aria-hidden="true" style="display:block !important;position:relative !important;width:40px !important;min-width:40px !important;height:40px !important;flex:0 0 40px !important;box-sizing:border-box !important;">
+      <span style="display:block !important;position:absolute !important;left:8px !important;top:11px !important;width:24px !important;height:23px !important;border:3px solid #ff6200 !important;border-radius:3px 3px 5px 5px !important;box-sizing:border-box !important;background:transparent !important;"></span>
+      <span style="display:block !important;position:absolute !important;left:13px !important;top:4px !important;width:14px !important;height:11px !important;border:3px solid #ff6200 !important;border-bottom:0 !important;border-radius:8px 8px 0 0 !important;box-sizing:border-box !important;background:transparent !important;"></span>
+    </span>`;
+  }
+  return `<span aria-hidden="true" style="display:block !important;position:relative !important;width:40px !important;min-width:40px !important;height:40px !important;flex:0 0 40px !important;box-sizing:border-box !important;">
+    <span style="display:block !important;position:absolute !important;left:7px !important;top:5px !important;width:24px !important;height:13px !important;border:3px solid #ff6200 !important;border-radius:2px !important;transform:rotate(30deg) skewX(-30deg) !important;box-sizing:border-box !important;"></span>
+    <span style="display:block !important;position:absolute !important;left:7px !important;top:14px !important;width:24px !important;height:13px !important;border:3px solid #ff6200 !important;border-radius:2px !important;transform:rotate(30deg) skewX(-30deg) !important;box-sizing:border-box !important;"></span>
+    <span style="display:block !important;position:absolute !important;left:7px !important;top:23px !important;width:24px !important;height:13px !important;border:3px solid #ff6200 !important;border-radius:2px !important;transform:rotate(30deg) skewX(-30deg) !important;box-sizing:border-box !important;"></span>
+  </span>`;
+}
+
+function getEasyTechnicalWeightInfo(row){
+  const candidates=[
+    ['Peso Producto',['Peso Producto','Peso producto','Peso del Producto','Peso del producto']],
+    ['Peso bruto',['Peso bruto','Peso Bruto']],
+    ['Peso neto',['Peso neto','Peso Neto']],
+    ['Peso',['Peso']]
+  ];
+  for(const [label,keys] of candidates){
+    for(const key of keys){
+      const raw=row && row[key] != null ? String(row[key]) : '';
+      const value=cleanTechnicalValue(raw);
+      if(value) return {label,key,value};
+    }
+  }
+  return {label:'Peso',key:'Peso',value:''};
+}
+function syncAppliedTechnicalSuggestion(rowIndex,type,oldValue,newValue){
+  easySuggestions.forEach(s=>{
+    if(s.rowIndex===Number(rowIndex)&&s.type===type&&s.status==='Aplicado'&&cleanTechnicalValue(s.value)===cleanTechnicalValue(oldValue)){
+      s.value=newValue;
+      if(type==='peso') s.targetKey=getEasyTechnicalWeightInfo(excelRows[Number(rowIndex)]).key||s.targetKey||'Peso';
+    }
+  });
+}
+function editTechnicalAttribute(rowIndex,type){
+  rowIndex=Number(rowIndex);
+  const row=excelRows[rowIndex]; if(!row) return;
+  let label='',key='',current='';
+  if(type==='dimensiones'){ label='Dimensiones'; key='Dimensiones'; current=cleanTechnicalValue(get(row,['Dimensiones'])); }
+  else if(type==='material'){ label='Material'; key='Material'; current=cleanTechnicalValue(get(row,['Material','Composición Material','Composicion Material'])); }
+  else if(type==='peso'){ const w=getEasyTechnicalWeightInfo(row); label=w.label||'Peso'; key=w.key||'Peso'; current=w.value; }
+  else return;
+  const edited=window.prompt('Editar '+label+':',current);
+  if(edited===null) return;
+  const value=cleanTechnicalValue(edited).trim();
+  if(!value) return alert('El valor no puede quedar vacío.');
+  const old=current;
+  if(type==='dimensiones') row['Dimensiones']=value;
+  else if(type==='material') row['Material']=value;
+  else row[key]=value;
+  syncAppliedTechnicalSuggestion(rowIndex,type,old,value);
+  renderEasySuggestions(); renderEasyQualityPanel(); updateTables();
+}
+function deleteTechnicalAttribute(rowIndex,type){
+  rowIndex=Number(rowIndex);
+  const row=excelRows[rowIndex]; if(!row) return;
+  let old='';
+  if(type==='dimensiones'){
+    old=cleanTechnicalValue(get(row,['Dimensiones'])); row['Dimensiones']='';
+  } else if(type==='material'){
+    old=cleanTechnicalValue(get(row,['Material','Composición Material','Composicion Material']));
+    ['Material','Composición Material','Composicion Material'].forEach(k=>{ if(row[k]!=null) row[k]=''; });
+  } else if(type==='peso'){
+    const w=getEasyTechnicalWeightInfo(row); old=w.value;
+    ['Peso Producto','Peso producto','Peso del Producto','Peso del producto','Peso bruto','Peso Bruto','Peso neto','Peso Neto','Peso'].forEach(k=>{ if(row[k]!=null) row[k]=''; });
+  } else return;
+  easySuggestions.forEach(s=>{
+    if(s.rowIndex===rowIndex&&s.type===type&&s.status==='Aplicado'&&(!old||cleanTechnicalValue(s.value)===cleanTechnicalValue(old))) s.status='Sugerencia';
+  });
+  renderEasySuggestions(); renderEasyQualityPanel(); updateTables();
+}
+function buildEasyTechnicalStrip(row,rowIndex=null,showControls=false){
+  const dimensiones=cleanTechnicalValue(get(row,['Dimensiones']));
+  const material=cleanTechnicalValue(get(row,['Material','Composición Material','Composicion Material']));
+  const w=getEasyTechnicalWeightInfo(row);
+  const items=[];
+  if(dimensiones)items.push({type:'dimensiones',label:'Dimensiones',value:dimensiones});
+  if(material)items.push({type:'material',label:'Material',value:material});
+  if(w.value)items.push({type:'peso',label:w.label,value:w.value});
+  if(!items.length)return '';
+  const parts=[];
+  items.forEach((it,idx)=>{
+    if(idx) parts.push(`<span class='easy-tech-separator' aria-hidden="true"></span>`);
+    const controls=(showControls&&rowIndex!==null)?`<div class='easy-tech-edit-actions' style='display:flex !important;gap:4px !important;justify-content:center !important;margin-top:3px !important;'><button type='button' onclick="editTechnicalAttribute(${Number(rowIndex)},'${it.type}')" title='Editar ${it.label}' aria-label='Editar ${it.label}' style='display:inline-flex !important;align-items:center !important;justify-content:center !important;width:24px !important;height:24px !important;padding:0 !important;border:1px solid #d0d5dd !important;border-radius:6px !important;background:#fff !important;color:#667085 !important;font-size:12px !important;line-height:1 !important;cursor:pointer !important;'>✎</button><button type='button' onclick="deleteTechnicalAttribute(${Number(rowIndex)},'${it.type}')" title='Eliminar ${it.label}' aria-label='Eliminar ${it.label}' style='display:inline-flex !important;align-items:center !important;justify-content:center !important;width:24px !important;height:24px !important;padding:0 !important;border:1px solid #f2c7c3 !important;border-radius:6px !important;background:#fff !important;color:#b42318 !important;font-size:14px !important;line-height:1 !important;cursor:pointer !important;'>×</button></div>`:'';
+    parts.push(`<div class='easy-tech-item' style='display:flex;flex:1 1 0;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:6px;padding:16px 18px;min-width:0;box-sizing:border-box;'>${technicalIcon(it.type)}<div class='easy-tech-copy' style='display:block !important;min-width:0 !important;color:#102a43 !important;line-height:1.25 !important;'><div class='easy-tech-label' style='display:block !important;font-weight:600 !important;font-size:11px !important;letter-spacing:.5px !important;text-transform:uppercase !important;margin:2px 0 4px 0 !important;color:#6b7280 !important;'>${escEasy(it.label)}</div><div class='easy-tech-value' style='display:block !important;font-size:14px !important;font-weight:600 !important;color:#102a43 !important;overflow-wrap:anywhere !important;'>${escEasy(it.value)}</div>${controls}</div></div>`);
+  });
+  return `<style>.easy-tech-strip{display:flex!important;flex-direction:row!important;align-items:stretch!important;width:100%!important;max-width:100%!important}.easy-tech-strip .easy-tech-item{display:flex!important;flex:1 1 0!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;text-align:center!important;gap:6px!important;padding:16px 18px!important;min-width:0!important;box-sizing:border-box!important}.easy-tech-strip .easy-tech-separator{display:block!important;width:1px!important;min-width:1px!important;height:auto!important;align-self:stretch!important;background:#e5e7eb!important;flex:0 0 1px!important;margin:10px 0!important}@media(max-width:1200px),(max-device-width:768px){.easy-tech-strip{flex-direction:column!important}.easy-tech-strip .easy-tech-item{width:100%!important;flex:0 0 auto!important;padding:14px 16px!important}.easy-tech-strip .easy-tech-copy,.easy-tech-strip .easy-tech-label,.easy-tech-strip .easy-tech-value{width:100%!important;text-align:center!important}.easy-tech-strip .easy-tech-separator{width:calc(100% - 32px)!important;min-width:0!important;height:1px!important;min-height:1px!important;flex:0 0 1px!important;margin:0 16px!important;align-self:center!important}}</style><div class='easy-tech-strip' style='display:flex;align-items:stretch;width:100%;max-width:100%;margin:18px 0 14px 0;background:#ffffff;border:1px solid #eceff2;border-radius:14px;overflow:hidden;box-sizing:border-box;'>${parts.join('')}</div>`;
+}
+
 function detectEasySuggestions(scrollToModule=false){
+ const manualSuggestions=easySuggestions.filter(s=>s&&s.manual);
  easySuggestions=[];
- excelRows.forEach((row,rowIndex)=>{const text=easyText(row),ctx=easyContext(row),sku=get(row,['SKU']); const seen=new Set();
+ excelRows.forEach((row,rowIndex)=>{
+  if(!easySuggestionBaselines.has(rowIndex)) easySuggestionBaselines.set(rowIndex, JSON.parse(JSON.stringify(row)));const text=easyText(row),ctx=easyContext(row),sku=get(row,['SKU']); const seen=new Set();
   EASY_INFO_GROUPS.forEach(g=>{if(!g.h.test(ctx))return;g.r.forEach(rule=>{const m=text.match(rule.rx);if(m){const value=rule.f(m);const k='i|'+value.toLowerCase();if(!seen.has(k)&&!easyArray(row,'Información Adicional').includes(value)){seen.add(k);easySuggestions.push({type:'info',rowIndex,sku,value,source:m[0],status:'Sugerencia'});}}});});
-  // Evita sugerencias solapadas: si existe una opción más completa, elimina las parciales.
   const rowInfo=easySuggestions.filter(x=>x.rowIndex===rowIndex&&x.type==='info'&&x.status==='Sugerencia');
   const rowInfoValues=new Set(rowInfo.map(x=>x.value.toLowerCase()));
-  if(rowInfoValues.has('uso interior y exterior')){
-    easySuggestions=easySuggestions.filter(x=>!(x.rowIndex===rowIndex&&x.type==='info'&&['uso interior','uso exterior'].includes(x.value.toLowerCase())));
-  }
+  if(rowInfoValues.has('uso interior y exterior')) easySuggestions=easySuggestions.filter(x=>!(x.rowIndex===rowIndex&&x.type==='info'&&['uso interior','uso exterior'].includes(x.value.toLowerCase())));
   EASY_CARE_RULES.forEach(([rx,value])=>{const m=text.match(rx);const k='c|'+value.toLowerCase();if(m&&!seen.has(k)&&!easyArray(row,'Cuidados de Uso').includes(value)){seen.add(k);easySuggestions.push({type:'care',rowIndex,sku,value,source:m[0],status:'Sugerencia'});}});
- }); renderEasySuggestions(); renderEasyQualityPanel();
+
+  const dim=extractEasyDimensions(text);
+  if(dim && !cleanTechnicalValue(get(row,['Dimensiones']))) easySuggestions.push({type:'dimensiones',rowIndex,sku,value:dim.value,source:dim.source,status:'Sugerencia'});
+  const mat=extractEasyMaterial(text);
+  if(mat && !cleanTechnicalValue(get(row,['Material','Composición Material','Composicion Material']))) easySuggestions.push({type:'material',rowIndex,sku,value:mat.value,source:mat.source,status:'Sugerencia'});
+  const weight=extractEasyWeight(text);
+  const currentWeight=cleanTechnicalValue(get(row,['Peso Producto','Peso producto','Peso del Producto','Peso del producto','Peso bruto','Peso Bruto','Peso neto','Peso Neto','Peso']));
+  if(weight && !currentWeight) easySuggestions.push({type:'peso',rowIndex,sku,value:weight.value,source:weight.source,status:'Sugerencia',targetKey:weight.key,label:weight.label});
+ });
+ manualSuggestions.forEach(ms=>{
+   const exists=easySuggestions.some(s=>s.rowIndex===ms.rowIndex&&s.type===ms.type&&String(s.value).trim().toLowerCase()===String(ms.value).trim().toLowerCase());
+   if(!exists) easySuggestions.push(ms);
+ });
+ renderEasySuggestions(); renderEasyQualityPanel();
  if(scrollToModule){setTimeout(()=>{const el=document.getElementById('easySuggestionsCard');if(el){el.scrollIntoView({behavior:'smooth',block:'start'});}},80);}
 }
-function applyEasySuggestion(i,silent=false){const s=easySuggestions[i];if(!s||s.status!=='Sugerencia')return;const row=excelRows[s.rowIndex],key=s.type==='info'?'Información Adicional':'Cuidados de Uso';const a=easyArray(row,key);if(!a.includes(s.value))a.push(s.value);easySetArray(row,key,a);s.status='Aplicado';cleanupEasyRedundantListItems(row,s.rowIndex);if(!silent){easySuggestionOpenState[s.type]=false;renderEasySuggestions();renderEasyQualityPanel();updateTables();alert('✅ Cambios aplicados');}}
+function applyEasySuggestion(i,silent=false){
+ const s=easySuggestions[i];if(!s||s.status!=='Sugerencia')return;const row=excelRows[s.rowIndex];
+ if(s.type==='dimensiones') row['Dimensiones']=cleanTechnicalValue(s.value);
+ else if(s.type==='material') row['Material']=cleanTechnicalValue(s.value);
+ else if(s.type==='peso') row[s.targetKey||'Peso']=cleanTechnicalValue(s.value);
+ else if(s.type==='youtube') { if(!cleanYoutubeUrl(s.value)) return alert('Ingresa una URL válida de YouTube (youtube.com o youtu.be).'); const v=String(s.value).trim(); row['VideoYouTube']=v; row['Video YouTube']=v; row['YouTube']=v; }
+ else {const key=s.type==='info'?'Información Adicional':'Cuidados de Uso';const a=easyArray(row,key);if(!a.includes(s.value))a.push(s.value);easySetArray(row,key,a);cleanupEasyRedundantListItems(row,s.rowIndex);}
+ s.status='Aplicado';
+ if(!silent){easySuggestionOpenState[s.type]=false;renderEasySuggestions();renderEasyQualityPanel();updateTables();alert('✅ Cambios aplicados');}
+}
+function removeAppliedEasySuggestions(rowIndex){
+ const applied=easySuggestions.filter(x=>x.rowIndex===Number(rowIndex)&&x.status==='Aplicado');
+ if(!applied.length) return;
+ const base=easySuggestionBaselines.get(Number(rowIndex));
+ if(!base) return alert('No fue posible recuperar el contenido original de esta ficha.');
+ excelRows[Number(rowIndex)] = JSON.parse(JSON.stringify(base));
+ easySuggestions.forEach(x=>{ if(x.rowIndex===Number(rowIndex)&&x.status==='Aplicado') x.status='Sugerencia'; });
+ [...easySuggestionSelection].forEach(i=>{ if(easySuggestions[i]&&easySuggestions[i].rowIndex===Number(rowIndex)) easySuggestionSelection.delete(i); });
+ renderEasySuggestions(); renderEasyQualityPanel(); updateTables();
+}
+function easySuggestionTypeLabel(type){
+ const labels={info:'Característica',care:'Cuidado de Uso',dimensiones:'Dimensiones',material:'Material',peso:'Peso',youtube:'Video YouTube'};
+ return labels[type]||type;
+}
+function toggleManualSuggestionForm(rowIndex){
+ const el=document.getElementById('easyManualSuggestionForm_'+Number(rowIndex));
+ if(!el) return;
+ el.style.display=el.style.display==='none'||!el.style.display?'flex':'none';
+ if(el.style.display==='flex'){
+   const input=el.querySelector('input'); if(input) setTimeout(()=>input.focus(),30);
+ }
+}
+function addManualEasySuggestion(rowIndex){
+ rowIndex=Number(rowIndex);
+ const form=document.getElementById('easyManualSuggestionForm_'+rowIndex);
+ if(!form) return;
+ const typeEl=form.querySelector('select');
+ const input=form.querySelector('input');
+ const type=typeEl?typeEl.value:'info';
+ let value=cleanTechnicalValue(input?input.value:'').trim();
+ if(!value) return alert(type==='youtube' ? 'Pega un link de YouTube.' : 'Escribe el contenido de la sugerencia.');
+ if(type==='youtube'){
+   const embed=cleanYoutubeUrl(value);
+   if(!embed) return alert('Ingresa una URL válida de YouTube (youtube.com o youtu.be).');
+   // Guardar la URL ingresada por el usuario; cleanYoutubeUrl se encarga de convertirla al exportar/visualizar.
+   value=String(input.value||'').trim();
+ }
+ if(!easySuggestionBaselines.has(rowIndex)) easySuggestionBaselines.set(rowIndex, JSON.parse(JSON.stringify(excelRows[rowIndex])));
+ const duplicate=easySuggestions.some(s=>s.rowIndex===rowIndex&&s.type===type&&String(s.value).trim().toLowerCase()===value.toLowerCase()&&s.status!=='Ignorado');
+ if(duplicate) return alert('Esa sugerencia ya existe para esta ficha.');
+ const sku=get(excelRows[rowIndex],['SKU']);
+ const s={type,rowIndex,sku,value,source:'Agregada manualmente',status:'Aplicado',manual:true};
+ if(type==='peso') s.targetKey='Peso';
+ easySuggestions.push(s);
+ const row=excelRows[rowIndex];
+ if(type==='dimensiones') row['Dimensiones']=value;
+ else if(type==='material') row['Material']=value;
+ else if(type==='peso') row['Peso']=value;
+ else if(type==='youtube') { row['VideoYouTube']=value; row['Video YouTube']=value; row['YouTube']=value; }
+ else {
+   const key=type==='info'?'Información Adicional':'Cuidados de Uso';
+   const arr=easyArray(row,key); if(!arr.includes(value)) arr.push(value); easySetArray(row,key,arr);
+ }
+ easySuggestionOpenState[type]=true;
+ if(input) input.value='';
+ form.style.display='none';
+ renderEasySuggestions(); renderEasyQualityPanel(); updateTables();
+ const card=document.getElementById('easySuggestionsCard'); if(card) card.style.display='block';
+}
+function editEasySuggestion(i){
+ const s=easySuggestions[i]; if(!s) return;
+ const current=cleanTechnicalValue(s.value);
+ const edited=window.prompt('Editar '+easySuggestionTypeLabel(s.type)+':', current);
+ if(edited===null) return;
+ const value=cleanTechnicalValue(edited).trim();
+ if(!value) return alert('La sugerencia no puede quedar vacía.');
+ const duplicate=easySuggestions.some((x,idx)=>idx!==i&&x.rowIndex===s.rowIndex&&x.type===s.type&&String(x.value).trim().toLowerCase()===value.toLowerCase()&&x.status!=='Ignorado');
+ if(duplicate) return alert('Ya existe una sugerencia igual para esta ficha.');
+ const old=s.value;
+ s.value=value;
+ if(s.status==='Aplicado'){
+   const row=excelRows[s.rowIndex];
+   if(s.type==='dimensiones') row['Dimensiones']=value;
+   else if(s.type==='material') row['Material']=value;
+   else if(s.type==='peso') row[s.targetKey||'Peso']=value;
+   else if(s.type==='youtube') {
+     if(!cleanYoutubeUrl(value)) { s.value=old; return alert('Ingresa una URL válida de YouTube (youtube.com o youtu.be).'); }
+     row['VideoYouTube']=value; row['Video YouTube']=value; row['YouTube']=value;
+   } else {
+     const key=s.type==='info'?'Información Adicional':'Cuidados de Uso';
+     const arr=easyArray(row,key); const pos=arr.indexOf(old);
+     if(pos>=0) arr[pos]=value; else if(!arr.includes(value)) arr.push(value);
+     easySetArray(row,key,arr);
+   }
+ }
+ renderEasySuggestions(); renderEasyQualityPanel(); updateTables();
+}
+function deleteEasySuggestion(i){
+ const s=easySuggestions[i]; if(!s) return;
+ const row=excelRows[s.rowIndex];
+ if(s.status==='Aplicado'){
+   if(s.type==='dimensiones' && cleanTechnicalValue(row['Dimensiones'])===cleanTechnicalValue(s.value)) row['Dimensiones']='';
+   else if(s.type==='material' && cleanTechnicalValue(row['Material'])===cleanTechnicalValue(s.value)) row['Material']='';
+   else if(s.type==='peso'){
+     const k=s.targetKey||'Peso'; if(cleanTechnicalValue(row[k])===cleanTechnicalValue(s.value)) row[k]='';
+   } else if(s.type==='youtube'){
+     const current=get(row,['VideoYouTube','Video YouTube','YouTube']);
+     if(String(current).trim()===String(s.value).trim()) { row['Video YouTube']=''; row['VideoYouTube']=''; row['YouTube']=''; }
+   } else if(s.type==='info' || s.type==='care'){
+     const key=s.type==='info'?'Información Adicional':'Cuidados de Uso';
+     const arr=easyArray(row,key).filter(v=>cleanTechnicalValue(v)!==cleanTechnicalValue(s.value)); easySetArray(row,key,arr);
+   }
+ }
+ easySuggestionSelection.delete(i);
+ easySuggestions.splice(i,1);
+ const shifted=new Set(); [...easySuggestionSelection].forEach(x=>shifted.add(x>i?x-1:x)); easySuggestionSelection.clear(); shifted.forEach(x=>easySuggestionSelection.add(x));
+ renderEasySuggestions(); renderEasyQualityPanel(); updateTables();
+}
+function buildManualSuggestionControls(rowIndex){
+ const entries=easySuggestions.map((s,i)=>({s,i})).filter(x=>x.s.rowIndex===Number(rowIndex)&&x.s.manual&&x.s.status==='Aplicado');
+ if(!entries.length) return '';
+ return `<div style='display:flex;flex-wrap:wrap;gap:6px;margin:7px 0 4px 0;'>${entries.map(({s,i})=>`<span style='display:inline-flex;align-items:center;gap:5px;background:#fffaf4;border:1px solid #f3dfc7;border-radius:999px;padding:3px 5px 3px 9px;font-size:11px;color:#7a4a16;'><span>${escEasy(easySuggestionTypeLabel(s.type))}: ${escEasy(cleanTechnicalValue(s.value))}</span><button type='button' onclick='editEasySuggestion(${i})' title='Editar' style='border:0;background:transparent;color:#667085;cursor:pointer;padding:1px 3px;font-size:11px;'>✎</button><button type='button' onclick='deleteEasySuggestion(${i})' title='Eliminar' style='border:0;background:transparent;color:#b42318;cursor:pointer;padding:1px 3px;font-size:12px;'>×</button></span>`).join('')}</div>`;
+}
 function ignoreEasySuggestion(i){const s=easySuggestions[i];if(s&&s.status==='Sugerencia'){s.status='Ignorado';easySuggestionOpenState[s.type]=false;renderEasySuggestions();renderEasyQualityPanel();alert('✅ Cambios aplicados');}}
 function applyEasyGroup(type,rowIndex){easySuggestions.forEach((s,i)=>{if(s.type===type&&s.rowIndex===rowIndex&&s.status==='Sugerencia')applyEasySuggestion(i,true)});renderEasySuggestions();renderEasyQualityPanel();updateTables();}
 function applyAllEasy(){easySuggestions.forEach((s,i)=>{if(s.status==='Sugerencia')applyEasySuggestion(i,true)});renderEasySuggestions();renderEasyQualityPanel();updateTables();}
@@ -1050,7 +1451,7 @@ function renderEasySuggestions(){
   const pending=easySuggestions.filter(x=>x.status==='Sugerencia').length;
   sum.innerHTML=`<div style="margin:8px 0 12px;font-size:12.5px;color:#475467;"><b>${pending}</b> sugerencia${pending===1?'':'s'} pendiente${pending===1?'':'s'}</div>`;
   if(!easySuggestions.length){box.innerHTML='<p>✅ No se detectaron sugerencias con el diccionario actual.</p>';return;}
-  const groups=[['info','💡 Agregar Información Adicional'],['care','🧺 Agregar Cuidados de Uso']];
+  const groups=[['dimensiones','↔ Dimensiones'],['material','▱ Material'],['peso','⚖ Peso'],['youtube','▶ Video YouTube'],['info','💡 Agregar Información Adicional'],['care','🧺 Agregar Cuidados de Uso']];
   let html='';
   groups.forEach(([type,title])=>{
     const items=easySuggestions.map((s,i)=>({s,i})).filter(x=>x.s.type===type);
@@ -1061,11 +1462,11 @@ function renderEasySuggestions(){
     const by={}; items.forEach(x=>(by[x.s.rowIndex]??=[]).push(x));
     Object.entries(by).forEach(([ri,arr])=>{
       const first=arr[0].s;
-      const rowPending=arr.filter(x=>x.s.status==='Sugerencia').length;
-      html+=`<div class="easy-sku-group"><div class="easy-sku-head"><div class="easy-sku-title">SKU ${escEasy(first.sku||'Sin SKU')} · ${arr.length} sugerencia${arr.length===1?'':'s'}</div></div><div class="easy-sku-body"><div class="easy-sug-grid">`;
+      const hasApplied=arr.some(x=>x.s.status==='Aplicado');
+      html+=`<div class="easy-sku-group"><div class="easy-sku-head"><div class="easy-sku-title">SKU ${escEasy(first.sku||'Sin SKU')} · ${arr.length} sugerencia${arr.length===1?'':'s'}</div>${hasApplied?`<button type="button" onclick="removeAppliedEasySuggestions(${ri})" style="margin-left:auto;padding:4px 9px;font-size:11px;line-height:1.2;border:1px solid #d0d5dd;border-radius:6px;background:#fff;color:#667085;cursor:pointer;" title="Revertir sugerencias aprobadas de esta ficha">↶ Eliminar sugerencias</button>`:''}</div><div class="easy-sku-body"><div class="easy-sug-grid">`;
       arr.forEach(({s,i})=>{
         const done=s.status!=='Sugerencia';
-        html+=`<div class="easy-sug-card" style="${done?'opacity:.55;':''}"><div class="easy-sug-select">${!done?`<input class="easy-sug-check" type="checkbox" ${easySuggestionSelection.has(i)?'checked':''} onchange="toggleEasySuggestionSelection(${i},this.checked)">`:''}<div><div class="easy-sug-value">${escEasy(s.value)}</div><div class="easy-sug-source">Detectado: “${escEasy(s.source)}”</div></div></div>${!done?`<div class="easy-sug-actions"><button type="button" class="easy-sug-action easy-sug-ok" title="Aprobar" aria-label="Aprobar" onclick="applyEasySuggestion(${i})">✓</button><button type="button" class="easy-sug-action easy-sug-no" title="Rechazar" aria-label="Rechazar" onclick="ignoreEasySuggestion(${i})">✕</button></div>`:`<div class="easy-sug-status">${escEasy(s.status)}</div>`}</div>`;
+        html+=`<div class="easy-sug-card" style="${done?'opacity:.72;':''}"><div class="easy-sug-select">${!done?`<input class="easy-sug-check" type="checkbox" ${easySuggestionSelection.has(i)?'checked':''} onchange="toggleEasySuggestionSelection(${i},this.checked)">`:''}<div><div class="easy-sug-value">${escEasy(cleanTechnicalValue(s.value))}</div><div class="easy-sug-source">${s.manual?'Manual':'Detectado'}: “${escEasy(cleanTechnicalValue(s.source))}”</div></div></div><div class="easy-sug-actions"><button type="button" class="easy-sug-action" style="border:1px solid #d0d5dd;background:#fff;color:#475467;" title="Editar sugerencia" aria-label="Editar sugerencia" onclick="editEasySuggestion(${i})">✎</button>${!done?`<button type="button" class="easy-sug-action easy-sug-ok" title="Aprobar" aria-label="Aprobar" onclick="applyEasySuggestion(${i})">✓</button><button type="button" class="easy-sug-action easy-sug-no" title="Rechazar" aria-label="Rechazar" onclick="ignoreEasySuggestion(${i})">✕</button>`:`${s.manual?`<button type="button" class="easy-sug-action easy-sug-no" title="Eliminar" aria-label="Eliminar" onclick="deleteEasySuggestion(${i})">×</button>`:''}<span class="easy-sug-status">${escEasy(s.status)}</span>`}</div></div>`;
       });
       html+='</div></div></div>';
     });
@@ -1077,17 +1478,11 @@ function applySelectedEasyType(type){
   const ids=[...easySuggestionSelection].filter(i=>easySuggestions[i]&&easySuggestions[i].type===type&&easySuggestions[i].status==='Sugerencia');
   if(!ids.length) return alert('☑️ Selecciona al menos una sugerencia de esta sección.');
   ids.forEach(i=>{ if(easySuggestions[i]&&easySuggestions[i].status==='Sugerencia') applyEasySuggestion(i,true); easySuggestionSelection.delete(i); });
-  easySuggestionOpenState[type]=false;
-  renderEasySuggestions(); renderEasyQualityPanel(); updateTables();
-  alert('✅ Cambios aplicados');
+  easySuggestionOpenState[type]=false; renderEasySuggestions(); renderEasyQualityPanel(); updateTables(); alert('✅ Cambios aplicados');
 }
 function applyEasyType(type){
-  let changed=false;
-  easySuggestions.forEach((s,i)=>{if(s.type===type&&s.status==='Sugerencia'){applyEasySuggestion(i,true);changed=true;}});
-  easySuggestionSelection.clear();
-  easySuggestionOpenState[type]=false;
-  renderEasySuggestions(); renderEasyQualityPanel(); updateTables();
-  if(changed) alert('✅ Cambios aplicados');
+  let changed=false; easySuggestions.forEach((s,i)=>{if(s.type===type&&s.status==='Sugerencia'){applyEasySuggestion(i,true);changed=true;}});
+  easySuggestionSelection.clear(); easySuggestionOpenState[type]=false; renderEasySuggestions(); renderEasyQualityPanel(); updateTables(); if(changed) alert('✅ Cambios aplicados');
 }
 
 function buildEasyInfoChips(row){const info=easyArray(row,'Información Adicional');if(!info.length)return '';return `<div style='margin:8px 0 14px 0;'><div style='display:flex;flex-wrap:wrap;gap:7px;'>${info.map(v=>`<span style='display:inline-block;background:#fff8ed;border:1px solid #f2c48d;color:#9a4d00;border-radius:7px;padding:5px 9px;font-size:13px;'>${v}</span>`).join('')}</div></div>`;}
@@ -1113,7 +1508,7 @@ function updateTables() {
     const imgMaterial = get(row, ['URL Imagen Material']);
     const imgDimensiones = get(row, ['URL Imagen Dimensiones']);
     const descripcionProducto = get(row, ['Descripción larga','Descripcion larga','Descripción Larga','Descripcion Larga','Descripción']);
-    const videoUrl = get(row, ['VideoYouTube','Video YouTube','YouTube']);
+    const videoUrl = getFirstNonEmpty(row, ['VideoYouTube','Video YouTube','YouTube']);
     const metaDescripcion = get(row, ['Meta Descripción','Meta Descripcion','Descripción corta','Descripcion corta']);
     const botonTexto = get(row, ['Archivo Descargable (Botón)','Archivo Descargable (Boton)','Texto Botón','Texto Boton']);
     const botonUrlRaw = get(row, ['URL archivo descargable','URL Archivo Descargable','URL botón','URL Boton','Manual de uso URL']);
@@ -1141,7 +1536,21 @@ function updateTables() {
     <input type='checkbox' style='width:16px;height:16px;accent-color:#922b21;cursor:pointer;' ${exportSelection.has(index)?'checked':''} onchange='toggleExportSelection(${index}, this.checked)'> Exportar ficha
   </label>
 </div>
-<div style='display:inline-block; background:#f4f6f7; color:#333; font-size:13px; padding:4px 10px; border-radius:6px; margin-top:6px;'>📦 SKU: ${sku}</div>
+<div style='display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-top:6px;'>
+  <div style='display:inline-block; background:#f4f6f7; color:#333; font-size:13px; padding:4px 10px; border-radius:6px;'>📦 SKU: ${sku}</div>
+  <div style='display:flex;align-items:center;gap:6px;flex-wrap:wrap;'>
+    ${easySuggestions.some(s=>s.rowIndex===index&&s.status==='Aplicado') ? `<button type='button' onclick='removeAppliedEasySuggestions(${index})' style='padding:4px 8px;font-size:11px;line-height:1.2;border:1px solid #d0d5dd;border-radius:6px;background:#fff;color:#667085;cursor:pointer;'>↶ Eliminar sugerencias</button>` : ''}
+    <button type='button' onclick='toggleManualSuggestionForm(${index})' style='padding:4px 8px;font-size:11px;line-height:1.2;border:1px solid #ff7a00;border-radius:6px;background:#fff7ed;color:#b54708;cursor:pointer;'>＋ Agregar sugerencia</button>
+  </div>
+</div>
+<div id='easyManualSuggestionForm_${index}' style='display:none;align-items:center;gap:6px;flex-wrap:wrap;margin:8px 0;padding:8px;background:#fffaf4;border:1px solid #f3dfc7;border-radius:8px;'>
+  <select style='font-size:12px;padding:6px 8px;border:1px solid #d0d5dd;border-radius:6px;background:#fff;'>
+    <option value='info'>Característica</option><option value='care'>Cuidado de Uso</option><option value='dimensiones'>Dimensiones</option><option value='material'>Material</option><option value='peso'>Peso</option><option value='youtube'>Video YouTube</option>
+  </select>
+  <input type='text' placeholder='Escribe la sugerencia' style='flex:1 1 180px;min-width:0;font-size:12px;padding:6px 8px;border:1px solid #d0d5dd;border-radius:6px;' onkeydown="if(event.key==='Enter'){event.preventDefault();addManualEasySuggestion(${index});}">
+  <button type='button' onclick='addManualEasySuggestion(${index})' style='padding:6px 9px;font-size:11px;border:1px solid #ff7a00;border-radius:6px;background:#ff7a00;color:#fff;cursor:pointer;'>Agregar</button>
+</div>
+${buildManualSuggestionControls(index)}
 <h2 style='margin:0 0 8px 0;color:#2c3e50;font-size:22px;line-height:1.25;'>${descripcion}</h2>
 ${cta ? formatMetaDescripcion(cta) : ''}
 ${imgMarca ? `<div style='margin:0 0 8px 0;line-height:0;'><img src='${imgMarca}' alt='Imagen de Marca' style='max-height:40px;height:auto;width:auto;display:block;'></div>` : ''}
@@ -1153,16 +1562,12 @@ ${descripcionProducto ? `<div style='margin:0 0 10px 0;background:transparent;co
 ${buildEasyCareChips(row)}
 ${botonHTML}
 `;
-// NUEVO: sólo mostrar la ficha si hay Material o Dimensiones
-const hasSpecs = (material && material.trim() !== '') || (dimensiones && dimensiones.trim() !== '');
-if (hasSpecs) {
-  html += `<table class='easy-specs-table' style='display:inline-table;width:fit-content;max-width:100%;border:1px solid #ddd;border-radius:8px;border-collapse:separate;border-spacing:0;overflow:hidden;background:#fff;table-layout:auto;'>
-<tr style='display:table-row !important;'><td colspan='2' style='display:table-cell !important;background:#e5e7eb;color:#111827;padding:6px 14px;margin:0;text-align:center;border:0;border-bottom:1px solid #d1d5db;font-size:16px;line-height:1.35;font-weight:400;'><span style='font-weight:700;font-size:16px'>Nuestros Productos</span><br><span style='font-weight:400;font-size:14px'>Ficha técnica y especificaciones</span></td></tr>`;
-    if (material) html += `<tr style='display:table-row !important;'><td class='easy-spec-icon' style='display:table-cell !important;padding:15px;width:70px;min-width:70px;text-align:center !important;vertical-align:middle !important;${dimensiones && dimensiones.trim() !== '' ? "border-bottom:1px solid #ddd;" : ""}'><img src='${imgMaterial || defaultImagenes.material}' alt='Material' style='width:50px;height:50px;object-fit:contain;display:block;margin:0 auto !important;'></td><td class='easy-spec-text' style='display:table-cell !important;padding:15px;text-align:left !important;vertical-align:middle !important;white-space:normal;${dimensiones && dimensiones.trim() !== '' ? "border-bottom:1px solid #ddd;" : ""}'><strong>Material:</strong> ${material}</td></tr>`;
-    if (dimensiones && dimensiones.trim() !== '') html += `<tr style='display:table-row !important;'><td class='easy-spec-icon' style='display:table-cell !important;padding:15px;width:70px;min-width:70px;text-align:center !important;vertical-align:middle !important;'><img src='${imgDimensiones || defaultImagenes.dimensiones}' alt='Dimensiones' style='width:50px;height:50px;object-fit:contain;display:block;margin:0 auto !important;'></td><td class='easy-spec-text' style='display:table-cell !important;padding:15px;text-align:left !important;vertical-align:middle !important;white-space:normal;'><strong>Dimensiones:</strong> ${dimensiones}</td></tr>`;
-    html += `</table>`;
-}
-    if (embedUrl) html += buildYoutubePreviewHtml(videoUrl);
+    if (embedUrl) {
+      html += buildYoutubePreviewHtml(videoUrl);
+      html += buildEasyTechnicalStrip(row,index,true);
+    } else {
+      html += buildEasyTechnicalStrip(row,index,true);
+    }
     html += `</div>`;
   });
   html += '</div>';
@@ -1201,7 +1606,7 @@ function exportHtmlToExcel(mode = 'all') {
     const imgMaterial = get(row, ['URL Imagen Material']);
     const imgDimensiones = get(row, ['URL Imagen Dimensiones']);
     const descripcionProducto = get(row, ['Descripción larga','Descripcion larga','Descripción Larga','Descripcion Larga','Descripción']);
-    const videoUrl = get(row, ['VideoYouTube','Video YouTube','YouTube']);
+    const videoUrl = getFirstNonEmpty(row, ['VideoYouTube','Video YouTube','YouTube']);
     const metaDescripcion = get(row, ['Meta Descripción','Meta Descripcion','Descripción corta','Descripcion corta']);
     const botonTexto = get(row, ['Archivo Descargable (Botón)','Archivo Descargable (Boton)','Texto Botón','Texto Boton']);
     const botonUrlRaw = get(row, ['URL archivo descargable','URL Archivo Descargable','URL botón','URL Boton','Manual de uso URL']);
@@ -1235,21 +1640,11 @@ ${descripcionProducto ? `<div style='margin:0 0 10px 0;background:transparent;co
 ${buildEasyCareChips(row)}
 ${botonHTML}`;
 
-    const hasSpecs = (material && material.trim() !== '') || (dimensiones && dimensiones.trim() !== '');
-    if (hasSpecs) {
-      html += `<table class='easy-specs-table' style='display:inline-table;width:auto;max-width:100%;border:1px solid #ddd;border-radius:8px;border-collapse:separate;border-spacing:0;overflow:hidden;background:#fff;table-layout:auto;'>
-<tr style='display:table-row !important;'><td colspan='2' style='display:table-cell !important;background:#e5e7eb;color:#111827;padding:6px 14px;margin:0;text-align:center;border:0;border-bottom:1px solid #d1d5db;font-size:16px;line-height:1.35;font-weight:400;'><span style='font-weight:700;font-size:16px'>Nuestros Productos</span><br><span style='font-weight:400;font-size:14px'>Ficha técnica y especificaciones</span></td></tr>`;
-      if (material) {
-        html += `<tr style='display:table-row !important;'><td class='easy-spec-icon' style='display:table-cell !important;padding:15px;width:70px;min-width:70px;text-align:center !important;vertical-align:middle !important;${dimensiones && dimensiones.trim() !== '' ? "border-bottom:1px solid #ddd;" : ""}'><img src='${imgMaterial || defaultImagenes.material}' alt='Material' style='width:50px;height:50px;object-fit:contain;display:block;margin:0 auto !important;'></td><td class='easy-spec-text' style='display:table-cell !important;padding:15px;text-align:left !important;vertical-align:middle !important;white-space:normal;${dimensiones && dimensiones.trim() !== '' ? "border-bottom:1px solid #ddd;" : ""}'><strong>Material:</strong> ${material}</td></tr>`;
-      }
-      if (dimensiones && dimensiones.trim() !== '') {
-        html += `<tr style='display:table-row !important;'><td class='easy-spec-icon' style='display:table-cell !important;padding:15px;width:70px;min-width:70px;text-align:center !important;vertical-align:middle !important;'><img src='${imgDimensiones || defaultImagenes.dimensiones}' alt='Dimensiones' style='width:50px;height:50px;object-fit:contain;display:block;margin:0 auto !important;'></td><td class='easy-spec-text' style='display:table-cell !important;padding:15px;text-align:left !important;vertical-align:middle !important;white-space:normal;'><strong>Dimensiones:</strong> ${dimensiones}</td></tr>`;
-      }
-      html += `</table>`;
-    }
-
     if (embedUrl) {
       html += `<div style='height:16px;line-height:0;font-size:0;clear:both;'>&nbsp;</div><div class='easy-video-responsive' style='position:relative;width:100%;max-width:100%;aspect-ratio:16 / 9;height:auto;box-sizing:border-box;margin:0;border-radius:12px;overflow:hidden;background:#000;clear:both;'><iframe src='${embedUrl}' title='Video YouTube' width='560' height='315' style='position:absolute;inset:0;width:100%;height:100%;max-width:100%;border:0;display:block;margin:0;padding:0;' referrerpolicy='strict-origin-when-cross-origin' allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share' allowfullscreen></iframe></div>`;
+      html += buildEasyTechnicalStrip(row);
+    } else {
+      html += buildEasyTechnicalStrip(row);
     }
 
     html += `</div>`;
@@ -1361,8 +1756,24 @@ function limpiarTodo() {
   document.getElementById('importFile').value = '';
   document.getElementById('tablesContainer').innerHTML = '<p>📂 Sin datos cargados.</p>';
   excelRows = [];
-  exportSelection.clear(); updateExportSelectionCount(); easySuggestionSelection.clear();
-  alert('🧹 Se limpiaron los datos y las tablas correctamente.');
+  exportSelection.clear();
+  updateExportSelectionCount();
+
+  // Reinicia completamente las sugerencias del archivo anterior.
+  easySuggestions = [];
+  easySuggestionSelection.clear();
+  ['dimensiones','material','peso','info','care'].forEach(type => {
+    easySuggestionOpenState[type] = true;
+  });
+
+  const suggestionsCard = document.getElementById('easySuggestionsCard');
+  const suggestionsSummary = document.getElementById('easySuggestionSummary');
+  const suggestionsBox = document.getElementById('easySuggestions');
+  if (suggestionsCard) suggestionsCard.style.display = 'none';
+  if (suggestionsSummary) suggestionsSummary.innerHTML = '';
+  if (suggestionsBox) suggestionsBox.innerHTML = '';
+
+  alert('🧹 Se limpiaron los datos, las tablas y las sugerencias correctamente.');
 }
 </script>
 </body>
