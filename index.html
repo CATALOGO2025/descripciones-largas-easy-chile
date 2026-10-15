@@ -1941,6 +1941,9 @@ function exportHtmlToExcel(mode = 'all') {
       'Guía de Tallas','Guia de Tallas','Guía Tallas','Guia Tallas','Guía de Tallas (archivo)','Guia de Tallas (archivo)'
     ]);
 
+    const editedName = easyFieldValue(rowIndex, 'name', descripcion);
+    const editedShort = easyFieldValue(rowIndex, 'short', metaDescripcion.trim() ? formatMetaDescripcion(metaDescripcion.trim()) : '');
+
     const cta = metaDescripcion.trim();
     const embedUrl = cleanYoutubeUrl(videoUrl);
 
