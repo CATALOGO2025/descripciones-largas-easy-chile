@@ -486,6 +486,8 @@ br.pre-h4{display:block;margin:0 0 0 0;}
   margin: 0 16px !important;
   align-self: center !important;
 }
+.easy-text-editing{outline:2px dashed #ff7a00;outline-offset:5px;border-radius:4px;min-height:30px;cursor:text;}
+.easy-text-editing p,.easy-text-editing h2,.easy-text-editing h3{cursor:text;}
 </style>
 <style>
 
@@ -692,6 +694,8 @@ img { max-width: 100%; height: auto; }
 .easy-sug-actions{display:flex;gap:6px;margin-top:auto;padding-top:8px}
 .easy-sug-action{width:30px!important;height:30px!important;min-width:30px!important;padding:0!important;margin:0!important;border-radius:6px!important;box-shadow:none!important;font-size:17px!important;font-weight:800!important;line-height:1!important;display:inline-flex!important;align-items:center!important;justify-content:center!important}
 .easy-sug-action:hover{transform:none!important;box-shadow:none!important}
+.easy-ladder-action{width:auto!important;height:auto!important;min-width:0!important;padding:7px 11px!important;border-radius:5px!important;background:linear-gradient(#24658b,#124768)!important;border:1px solid #145071!important;color:#fff!important;font-size:12px!important;font-weight:700!important;line-height:1.25!important;box-shadow:0 2px 4px rgba(0,0,0,.14)!important;white-space:nowrap!important}
+.easy-ladder-action:hover{background:#0f3d5d!important}
 .easy-sug-ok{background:#ecfdf3!important;color:#067647!important;border:1px solid #abefc6!important}
 .easy-sug-no{background:#fef3f2!important;color:#b42318!important;border:1px solid #fecdca!important}
 .easy-sug-status{font-size:11px;color:#667085;margin-top:auto;padding-top:8px}
@@ -728,13 +732,23 @@ img { max-width: 100%; height: auto; }
 .quality-details{margin-top:10px!important}.quality-list{margin-top:8px;border:1px solid #e5e9ef;border-radius:8px;overflow:hidden}.quality-row{display:grid;grid-template-columns:minmax(105px,150px) 1fr auto;gap:10px;align-items:center;padding:8px 10px;background:#fff;border-bottom:1px solid #eef1f4;font-size:12px}.quality-row:last-child{border-bottom:0}.quality-row-sku{font-weight:700;white-space:nowrap}.quality-row-reason{color:#667085;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.quality-row-status{font-size:11px;font-weight:700;white-space:nowrap}.quality-more{border:0!important;background:transparent!important;color:#475467!important;padding:2px 5px!important;margin:0!important;box-shadow:none!important;font-size:14px!important}.quality-expanded{grid-column:2 / 4;color:#667085;line-height:1.45;padding:2px 0 4px}.quality-expanded div+div{margin-top:3px}.quality-footer{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:8px;color:#667085;font-size:11.5px}.quality-page-actions{display:flex;gap:5px}.quality-page-actions button{margin:0!important;padding:4px 8px!important;font-size:11px!important;background:#fff!important;color:#344054!important;border:1px solid #dfe5ec!important;box-shadow:none!important}.quality-empty{padding:16px;text-align:center;color:#667085;font-size:12px}
 @media(max-width:700px){.quality-search{width:100%}.quality-row{grid-template-columns:1fr auto}.quality-row-reason{grid-column:1 / 3;white-space:normal}.quality-row-status{grid-column:2;grid-row:1}.quality-expanded{grid-column:1 / 3}.quality-footer{align-items:flex-start;flex-direction:column}}
 </style>
+<style>
+.easy-guide{border:1px solid #d9e3ed;border-radius:12px;margin:12px 20px;box-sizing:border-box;overflow:hidden;background:white;box-shadow:0 2px 7px rgba(18,48,75,.04)}
+.easy-guide summary{list-style:none;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:12px;padding:15px 20px;background:#f3f8fc;font-size:13px;font-weight:700;color:#12334f}
+.easy-guide summary::-webkit-details-marker{display:none}.easy-guide summary span{font-size:10px;font-weight:400;color:#5d7890}
+.easy-guide-content{padding:14px 22px;font-size:12px;line-height:1.7}.easy-guide-content ul{margin:0;padding-left:20px}.easy-guide-content li{margin:8px 0}
+.easy-directrices{border-left:3px solid #f5bd00;background:#fffdf4}.easy-directrices summary{background:#fff7dd;color:#513c00}.easy-directrices .easy-guide-content{background:#fffdf4}
+.easy-layout-controls{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin:0 0 12px;font-size:12px;font-weight:700}
+.easy-preview-viewport:not(.easy-preview-app) .easy-ficha-wrapper{display:grid!important;grid-template-columns:repeat(var(--easy-cols,2),minmax(0,1fr))!important;gap:16px!important;align-items:start}
+.easy-preview-viewport:not(.easy-preview-app) .easy-ficha-wrapper>div{min-width:0!important;width:auto!important;max-width:100%!important;margin:0!important;overflow-wrap:anywhere}
+.easy-preview-viewport.easy-preview-app .easy-ficha-wrapper{display:grid!important;grid-template-columns:minmax(0,1fr)!important}
+@media(max-width:700px){.easy-preview-viewport .easy-ficha-wrapper{display:grid!important;grid-template-columns:minmax(0,1fr)!important}.easy-preview-viewport .easy-ficha-wrapper>div{min-width:0!important;width:100%!important;max-width:100%!important}}
+</style>
 </head>
 <!-- Video YouTube sincronizado desde index Easy de referencia funcional -->
 <body>
 <div class="header" style="background:#922b21;"><img alt="Easy" src="https://easycl.vtexassets.com/assets/vtex.file-manager-graphql/images/97740859-8d6b-4562-ad02-d6fd37c14e32___bab6e437e21af76315174bd3b460d74a.svg" style="height:40px;max-height:40px;width:fit-content;display:block;"/><span>Creador de Descripciones Largas</span></div>
-<div class="card">
-<h2>📜 Instrucciones</h2>
-<ul style="line-height:1.7;">
+<div class="easy-guide easy-instructions"><details open><summary>📜 Instrucciones <span>Mostrar / ocultar　⌄</span></summary><div class="easy-guide-content"><ul style="line-height:1.7;">
 <li>👨‍💻 <b>Descargar Plantilla:</b> Usa el botón para descargar un Excel preformateado.</li>
 <li>📁 <b>Procesar Excel:</b> Completa los campos requeridos.</li>
 <li>✨ <b>Revisar sugerencias:</b> Detecta información comercial útil y Cuidados de Uso presentes en el contenido. Permite aprobar o descartar sugerencias antes de generar el HTML.</li>
@@ -742,16 +756,16 @@ img { max-width: 100%; height: auto; }
 <li>👁️ <b>Previsualizar:</b> Visualizar Tablas muestra resultados.</li>
 <li>⬇️ <b>Exportar:</b> Exportar HTML a Excel descarga resultados.</li>
 </ul>
-<div style="background: #fff9e6; border-left: 6px solid #f5c518; border-top-left-radius: 12px; border-bottom-left-radius: 12px; padding: 20px; margin-bottom: 30px;">
-<h3 style="margin-top: 0; color: #7d6608;">📌 <b>Directrices</b></h3>
-<ul style="line-height:1.7; color: #000; margin: 0;"><li><b>Descripción corta:</b> Máximo 160 caracteres.</li>
+</div></details></div>
+<div class="easy-guide easy-directrices"><details open><summary>📌 Directrices <span>Mostrar / ocultar　⌄</span></summary><div class="easy-guide-content"><ul style="line-height:1.7; color: #000; margin: 0;"><li><b>Descripción corta:</b> Máximo 160 caracteres.</li>
 <li><b>Descripción larga:</b> Este campo se convierte en texto HTML. Usa palabras *entre asteriscos* para poner en negrita, y ## antes de títulos para destacarlos.</li>
-<li><b>Descripción de la Marca:</b> Usa el archivo "Descripciones Marcas y urls" desde SharePoint.</li>
+<li><b>Descripción de la Marca:</b> Usa el archivo "Descripciones Marcas y urls" desde SharePoint. &gt;&gt; <a href="https://cnco.sharepoint.com/:x:/r/sites/CatalogoEasycl/Documentos%20compartidos/Chile/3.%20Catalogaci%C3%B3n/Descripciones%20largas/Descripciones%20Marcas%20y%20urls.xlsx?d=w388a62d2a3ba416d8108e79351cfa95d&amp;csf=1&amp;web=1&amp;e=h4WVqm" target="_blank" rel="noopener noreferrer">Ir al archivo ↗</a></li>
 <li><b>Imagen de Marca:</b> La URL debe estar en nuestros servidores internos. No se permiten URLs externas.</li>
 <li><b>Video YouTube:</b> Se acepta tanto la URL corta como la larga para incrustar videos.</li>
 <li><b>Descarga de documentos:</b> Selecciona en el Excel el botón que se acomode a tu necesidad más la URL del archivo.</li>
 <li>En la plantilla descargada podrás ver las instrucciones en mayor detalle.</li></ul>
-</div>
+</div></details></div>
+<div class="card">
 <button onclick="updateTables()">👁️ Visualizar Tablas</button>
 <button onclick="detectEasySuggestions(true)">✨ Revisar Sugerencias</button>
 <button onclick="exportHtmlToExcel('selected')">☑️ Exportar seleccionados <span id="exportSelectionCount" class="export-count" style="margin-left:8px;background:rgba(255,255,255,.18);color:#fff;padding:2px 8px;border-radius:999px;font-weight:700;">0</span></button>
@@ -763,12 +777,13 @@ img { max-width: 100%; height: auto; }
 <div class="quality-panel" id="qualityPanel"></div>
 <div class="card easy-preview-card">
   <div class="easy-preview-toolbar">
-    <div class="easy-preview-title">👁️ Vista previa de ficha</div>
+    <div class="easy-preview-title">👁️ Vista previa de ficha <span id="easyPreviewCount" style="font-size:11px;color:#667085;font-weight:400;margin-left:6px;"></span></div>
     <div class="easy-preview-actions">
       <button type="button" id="easyPreviewDesktopBtn" class="easy-preview-btn active" onclick="setEasyPreviewMode('desktop')">🖥 Desktop</button>
       <button type="button" id="easyPreviewAppBtn" class="easy-preview-btn" onclick="setEasyPreviewMode('app')">📱 App</button>
     </div>
   </div>
+  <div class="easy-layout-controls">Fichas por fila: <button type="button" class="easy-preview-btn" data-cols="1" onclick="setEasyPreviewColumns(1)">▤ 1 por fila</button><button type="button" class="easy-preview-btn active" data-cols="2" onclick="setEasyPreviewColumns(2)">▦ 2 por fila</button><button type="button" class="easy-preview-btn" data-cols="3" onclick="setEasyPreviewColumns(3)">▦ 3 por fila</button></div>
   <div id="easyPreviewViewport" class="easy-preview-viewport easy-preview-desktop"><div id="tablesContainer"></div></div>
 </div>
 <div class="card" id="easySuggestionsCard" style="display:none;">
@@ -811,6 +826,13 @@ function applySelectedEasySuggestions(){
 }
 function toggleEasySuggestionSection(type){ easySuggestionOpenState[type]=!easySuggestionOpenState[type]; renderEasySuggestions(); }
 
+let easyPreviewColumns=2;
+function setEasyPreviewColumns(n){
+  easyPreviewColumns=[1,2,3].includes(Number(n))?Number(n):1;
+  document.querySelectorAll('[data-cols]').forEach(b=>b.classList.toggle('active',Number(b.dataset.cols)===easyPreviewColumns));
+  const vp=document.getElementById('easyPreviewViewport');
+  if(vp)vp.style.setProperty('--easy-cols',String(easyPreviewColumns));
+}
 function setEasyPreviewMode(mode){
   const vp=document.getElementById('easyPreviewViewport');
   const d=document.getElementById('easyPreviewDesktopBtn');
@@ -872,8 +894,9 @@ function importExcel() {
     const workbook = XLSX.read(data, {type: 'array'});
     const sheet = workbook.Sheets[workbook.SheetNames[0]];
     excelRows = XLSX.utils.sheet_to_json(sheet, { defval: "", raw: false });
+    easyParagraphEdits.clear(); easyParagraphOriginals.clear();
     exportSelection.clear(); updateExportSelectionCount(); easySuggestionSelection.clear();
-    easySuggestions=[]; easySuggestionBaselines.clear(); const sc=document.getElementById('easySuggestionsCard'); if(sc) sc.style.display='none'; const qp=document.getElementById('qualityPanel'); if(qp){qp.style.display='none';qp.innerHTML='';}
+    easySuggestions=[]; easyLadderApproved.clear(); Object.keys(easyLadderEdits).forEach(k=>delete easyLadderEdits[k]); easySuggestionBaselines.clear(); const sc=document.getElementById('easySuggestionsCard'); if(sc) sc.style.display='none'; const qp=document.getElementById('qualityPanel'); if(qp){qp.style.display='none';qp.innerHTML='';}
     if (!excelRows.length) return alert('❌ No se encontraron filas en el Excel.');
     renderEasyQualityPanel();
     alert('📁 Excel cargado correctamente. Puedes visualizar las tablas.');
@@ -1275,7 +1298,133 @@ function deleteTechnicalAttribute(rowIndex,type){
   });
   renderEasySuggestions(); renderEasyQualityPanel(); updateTables();
 }
+// Franja exclusiva para productos identificados como escaleras.
+const easyLadderEdits={};
+const easyLadderApproved=new Set();
+function isEasyLadder(row){
+ const category=String(get(row,['Categoría','Categoria','Nombre Categoría','Nombre Categoria','Subcategoría','Subcategoria','Tipo de Producto','Tipo Producto','Grupo','Familia'])||'');
+ const name=String(get(row,['Nombre del Producto','Nombre Producto','Producto'])||'');
+ const context=(category+' '+name).toLowerCase();
+ return /\b(escalera|escaleras|escala|escalas|escalera\s+entretecho|escaleras\s+entretecho|escalerilla|escalerillas|escalonera|escaloneras|andamio|andamios|taburete\s+escalera)\b/i.test(context);
+}
+function easyLadderFields(row){
+ const text=String(get(row,['Descripción larga','Descripcion larga','Descripción Larga','Descripcion Larga','Descripción'])||'').replace(/<[^>]*>/g,' ').replace(/&nbsp;/g,' ');
+ const pick=(keys,rx)=>{const explicit=cleanTechnicalValue(get(row,keys));if(explicit)return explicit;const m=text.match(rx);return m?cleanTechnicalValue(m[1]+' '+(m[2]||'')):'';};
+ const capacity=pick(['Peso Soportado','Peso soportado','Capacidad de carga','Carga máxima','Carga maxima','Peso máximo soportado','Peso maximo soportado'],/(?:peso\s+(?:máximo\s+)?soportado|capacidad\s+de\s+carga|carga\s+máxima|soporta\s+hasta)\s*:?\s*(\d+(?:[.,]\d+)?)\s*(kg|kilogramos?)\b/i);
+ const height=pick(['Altura escalera','Altura de la escalera','Altura máxima','Altura maxima','Altura'],/(?:altura\s+(?:máxima|total|de\s+trabajo|de\s+la\s+escalera)?|alto)\s*:?\s*(\d+(?:[.,]\d+)?)\s*(m|metros?|cm)\b/i);
+ const material=pick(['Material','Composición Material','Composicion Material'],/\bmaterial\s*:?\s*(aluminio|acero\s+inoxidable|acero|fibra\s+de\s+vidrio|madera)\b/i);
+ // Priorizar el atributo estructurado; si no existe, buscar tanto en el titulo como en la descripcion.
+ // Aceptar '12 peldaños', '12 escalones', 'Peldaños: 12' y 'Cantidad de peldaños: 12'.
+ // No deducir cantidades a partir de formatos como '4x3'.
+ // Separar cantidad de peldaños de distancia entre ellos (cm/mm/m).
+ // No convertir "Espacios entre peldaños: 30 cm" en "30 peldaños".
+ const stepsKeys=['Cantidad de escalones','Número de peldaños','Numero de peldaños','Cantidad de peldaños','Número de escalones','Numero de escalones','Peldaños','Peldanos','Escalones'];
+ const distanceContext=/(?:distancia|separaci[oó]n|espaci(?:o|amiento)s?|intervalo)\s+(?:entre\s+)?(?:los\s+)?(?:peldaños?|peldanos?|escalones?)/i;
+ const isCount=(v)=>{const t=String(v||'').trim();return /^\d{1,3}(?:\s*(?:peldaños?|peldanos?|escalones?))?$/i.test(t);};
+ let steps='';
+ for(const key of stepsKeys){
+   const raw=cleanTechnicalValue(get(row,[key]));
+   if(raw && isCount(raw)){steps=raw;break;}
+ }
+ if(!steps){
+   const title=String(get(row,['Nombre del Producto','Nombre Producto','Producto','Nombre','Título','Titulo'])||'').replace(/<[^>]*>/g,' ');
+   const stepsText=title+' '+text;
+   const candidates=[
+     /\b(\d{1,3})\s*(peldaños?|peldanos?|escalones?)\b/gi,
+     /\b(?:(?:cantidad|n[uú]mero|n[º°])\s+de\s+)?(peldaños?|peldanos?|escalones?)\s*[:=\-]?\s*(\d{1,3})\b/gi
+   ];
+   for(const rx of candidates){
+     let match;
+     while((match=rx.exec(stepsText))!==null){
+       const num=rx===candidates[0]?match[1]:match[2];
+       const before=stepsText.slice(Math.max(0,match.index-85),match.index);
+       const segment=before.split(/[.;\n]/).pop()||'';
+       const after=stepsText.slice(match.index+match[0].length,match.index+match[0].length+15);
+       if(distanceContext.test(segment) || /^\s*(?:cm|mm|metros?|m)\b/i.test(after))continue;
+       steps=num;break;
+     }
+     if(steps)break;
+   }
+ }
+
+ let type=cleanTechnicalValue(get(row,['Tipo de escalera','Tipo Escalera']));
+ if(!type){const m=(String(get(row,['Nombre del Producto','Nombre Producto','Producto'])||'')+' '+text).match(/\b(multipropósito|multiproposito|tijera|telescópica|telescopica|andamio|taburete|articulada)\b/i);if(m)type=m[1];}
+ return [{key:'capacity',label:'Peso soportado',value:capacity},{key:'height',label:'Altura',value:height},{key:'material',label:'Material',value:material},{key:'steps',label:'Peldaños',value:steps?(/peldañ|escalon/i.test(steps)?steps:steps+' peldaños'):''},{key:'ladderType',label:'Tipo',value:type}];
+}
+function easyLadderIcon(key){
+ const icons={
+  capacity:'https://cl-gm-original-files.ecomm.cencosud.com/is/image/EasySA/logo_peso_soportado.png',
+  height:'https://cl-gm-original-files.ecomm.cencosud.com/is/image/EasySA/logo_altura.png',
+  material:'https://cl-gm-original-files.ecomm.cencosud.com/is/image/EasySA/logo_material_.png',
+  steps:'https://cl-gm-original-files.ecomm.cencosud.com/is/image/EasySA/logo_peldanos.png',
+  ladderType:'https://cl-gm-original-files.ecomm.cencosud.com/is/image/EasySA/logo_tipo_escalera.png'
+ };
+ const url=icons[key];
+ if(!url)return '';
+ return `<span style="display:inline-flex;width:60px;height:60px;flex:0 0 60px;border-radius:50%;background:#ffe5d6;align-items:center;justify-content:center;overflow:hidden;"><img src="${url}" alt="" loading="lazy" style="width:49px;height:49px;object-fit:contain;display:block;" onerror="this.style.display='none'"></span>`;
+}
+function easyLadderEdit(rowIndex,key){
+ const row=excelRows[Number(rowIndex)];if(!row)return;
+ const fields=easyLadderFields(row),field=fields.find(x=>x.key===key);if(!field)return;
+ const current=(easyLadderEdits[rowIndex]&&Object.prototype.hasOwnProperty.call(easyLadderEdits[rowIndex],key))?easyLadderEdits[rowIndex][key]:field.value;
+ const value=window.prompt('Editar '+field.label+':',current);if(value===null)return;
+ (easyLadderEdits[rowIndex]||(easyLadderEdits[rowIndex]={}))[key]=value.trim();updateTables();
+}
+// Editor de la sugerencia: seleccion individual y valores editables antes de aprobar.
+const easyLadderSelections={};
+const easyLadderEditorOpen={};
+function easyLadderSelection(rowIndex){
+ if(!easyLadderSelections[rowIndex]){
+  easyLadderSelections[rowIndex]={};
+  easyLadderFields(excelRows[rowIndex]).forEach(f=>{easyLadderSelections[rowIndex][f.key]=!!f.value;});
+ }
+ return easyLadderSelections[rowIndex];
+}
+function easyLadderSetSelected(rowIndex,key,checked){easyLadderSelection(rowIndex)[key]=checked;}
+function easyLadderSetValue(rowIndex,key,value){
+ (easyLadderEdits[rowIndex]||(easyLadderEdits[rowIndex]={}))[key]=value;
+}
+function easyLadderToggleEditor(rowIndex,details){easyLadderEditorOpen[rowIndex]=details.open;}
+function easyLadderSuggestionEditor(rowIndex){
+ const row=excelRows[rowIndex];if(!row)return '';
+ const selection=easyLadderSelection(rowIndex);
+ const fields=easyLadderFields(row);
+ const edits=easyLadderEdits[rowIndex]||{};
+ const fieldCards=fields.map(f=>{
+  const val=Object.prototype.hasOwnProperty.call(edits,f.key)?edits[f.key]:f.value;
+  return `<div style="display:flex;align-items:center;gap:9px;padding:8px;background:#fff;border:1px solid #e0e6ee;border-radius:9px;margin:7px 0;">
+   <input type="checkbox" aria-label="Incluir ${escEasy(f.label)} (Escaleras)" ${selection[f.key]?'checked':''} onchange="easyLadderSetSelected(${rowIndex},'${f.key}',this.checked)" style="width:16px;height:16px;accent-color:#ea580c;flex-shrink:0;">
+   <span style="display:inline-flex;transform:scale(.72);width:46px;flex:0 0 46px;transform-origin:left center;">${easyLadderIcon(f.key)}</span>
+   <label style="flex:1;min-width:0;font-size:12px;font-weight:700;color:#263445;">${escEasy(f.label)} (Escaleras)
+    <input type="text" value="${escEasy(val).replace(/&quot;/g,'&quot;')}" oninput="easyLadderSetValue(${rowIndex},'${f.key}',this.value)" placeholder="Valor del producto" style="display:block;width:100%;box-sizing:border-box;padding:7px;margin-top:4px;border:1px solid #d0d9e4;border-radius:6px;font-size:12px;font-weight:400;">
+   </label></div>`;
+ }).join('');
+ return `<details ${easyLadderEditorOpen[rowIndex]?'open':''} ontoggle="easyLadderToggleEditor(${rowIndex},this)" style="margin:10px 0;border:1px solid #f4c6aa;background:#fffaf7;border-radius:9px;padding:10px;">
+ <summary style="cursor:pointer;font-weight:700;font-size:12px;color:#8d3b13;">⚙ Agregar claims de la franja · Seleccionar y editar</summary>
+ <div style="margin-top:9px;">${fieldCards}<div style="font-size:11px;color:#667085;margin:8px 0;">Marca los claims que deseas agregar a la franja y completa sus valores. Usa únicamente información verificada del producto.</div>
+ <button type="button" onclick="easyLadderSaveEditor(${rowIndex})" class="easy-ladder-action" style="cursor:pointer;">✓ Guardar franja</button></div></details>`;
+}
+function easyLadderSaveEditor(rowIndex){
+ const selection=easyLadderSelection(rowIndex);
+ const edits=easyLadderEdits[rowIndex]||{};
+ const hasAny=easyLadderFields(excelRows[rowIndex]).some(f=>selection[f.key]&&String(Object.prototype.hasOwnProperty.call(edits,f.key)?edits[f.key]:f.value).trim());
+ if(!hasAny)return alert('Selecciona al menos una característica con un valor válido.');
+ easyLadderEditorOpen[rowIndex]=true;
+ alert('Características guardadas. Para incorporarlas al HTML, aprueba la sugerencia.');
+}
+function buildEasyLadderStrip(row,rowIndex=null,showControls=false){
+ const overrides=rowIndex!==null?easyLadderEdits[rowIndex]||{}:{};
+ // El índice para exportación se resuelve por identidad de fila, conservando cambios manuales.
+ const index=rowIndex===null?excelRows.indexOf(row):Number(rowIndex);
+ const saved=index>=0?easyLadderEdits[index]||{}:overrides;
+ const fields=easyLadderFields(row).map(f=>({...f,value:Object.prototype.hasOwnProperty.call(saved,f.key)?saved[f.key]:f.value})).filter(f=>f.value && (!easyLadderSelections[index] || easyLadderSelections[index][f.key]));
+ if(!fields.length)return '';
+ const parts=fields.map(f=>`<div class="easy-ladder-item" style="display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:0;flex:1 1 0;min-width:0;padding:16px 8px;box-sizing:border-box;">${easyLadderIcon(f.key)}<div style="min-width:0;width:100%;text-align:center;margin-top:5px;"><div style="font-size:13px;font-weight:700;color:#15283d;">${escEasy(f.label)}</div><div style="font-size:13px;color:#667085;margin-top:3px;">${escEasy(f.value)}</div>${showControls&&rowIndex!==null?`<button type="button" onclick="easyLadderEdit(${Number(rowIndex)},'${f.key}')" style="margin-top:5px;font-size:11px;border:1px solid #f3b18e;background:white;color:#b6420a;border-radius:4px;cursor:pointer;">✎ Editar</button>`:''}</div></div>`).join('');
+ return `<style>.easy-ladder-strip{display:flex!important;flex-direction:row!important;align-items:stretch!important;width:100%!important;box-sizing:border-box!important}.easy-ladder-strip .easy-ladder-item+.easy-ladder-item{border-left:1px solid #e5e7eb}.easy-ladder-item>div{min-width:0}.easy-ladder-item>div>div{overflow-wrap:normal!important;word-break:normal!important;white-space:normal!important}.easy-ladder-item svg{flex-shrink:0!important}@media(max-width:768px){.easy-ladder-strip{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important}.easy-ladder-strip .easy-ladder-item{width:auto!important;min-width:0!important;border-left:0!important;border-top:0!important}.easy-ladder-strip .easy-ladder-item:nth-child(even){border-left:1px solid #e5e7eb!important}.easy-ladder-strip .easy-ladder-item:nth-child(n+3){border-top:1px solid #e5e7eb!important}}</style><div style="width:100%;"><div class="easy-ladder-strip" style="background:#fff;border:1px solid #dfe5ec;border-radius:9px;margin:18px 0 14px;overflow:hidden;">${parts}</div></div>`;
+}
 function buildEasyTechnicalStrip(row,rowIndex=null,showControls=false){
+  const ladderIndex=rowIndex===null?excelRows.indexOf(row):Number(rowIndex);
+  if(isEasyLadder(row)&&easyLadderApproved.has(ladderIndex))return buildEasyLadderStrip(row,ladderIndex,showControls);
   const dimensiones=cleanTechnicalValue(get(row,['Dimensiones']));
   const material=cleanTechnicalValue(get(row,['Material','Composición Material','Composicion Material']));
   const w=getEasyTechnicalWeightInfo(row);
@@ -1293,6 +1442,27 @@ function buildEasyTechnicalStrip(row,rowIndex=null,showControls=false){
   return `<style>.easy-tech-strip{display:flex!important;flex-direction:row!important;align-items:stretch!important;width:100%!important;max-width:100%!important}.easy-tech-strip .easy-tech-item{display:flex!important;flex:1 1 0!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;text-align:center!important;gap:6px!important;padding:16px 18px!important;min-width:0!important;box-sizing:border-box!important}.easy-tech-strip .easy-tech-separator{display:block!important;width:1px!important;min-width:1px!important;height:auto!important;align-self:stretch!important;background:#e5e7eb!important;flex:0 0 1px!important;margin:10px 0!important}@media(max-width:1200px),(max-device-width:768px){.easy-tech-strip{flex-direction:column!important}.easy-tech-strip .easy-tech-item{width:100%!important;flex:0 0 auto!important;padding:14px 16px!important}.easy-tech-strip .easy-tech-copy,.easy-tech-strip .easy-tech-label,.easy-tech-strip .easy-tech-value{width:100%!important;text-align:center!important}.easy-tech-strip .easy-tech-separator{width:calc(100% - 32px)!important;min-width:0!important;height:1px!important;min-height:1px!important;flex:0 0 1px!important;margin:0 16px!important;align-self:center!important}}</style><div class='easy-tech-strip' style='display:flex;align-items:stretch;width:100%;max-width:100%;margin:18px 0 14px 0;background:#ffffff;border:1px solid #eceff2;border-radius:14px;overflow:hidden;box-sizing:border-box;'>${parts.join('')}</div>`;
 }
 
+// Evitar sugerencias duplicadas: los atributos ya propuestos en la franja de escaleras
+// no deben aparecer nuevamente como Información Adicional ni como franja técnica.
+function easyLadderSuggestionIsDuplicated(s){
+ if(!s || !['info','dimensiones','material','peso'].includes(s.type))return false;
+ const row=excelRows[s.rowIndex];
+ if(!row || !isEasyLadder(row))return false;
+ const selection=easyLadderSelection(s.rowIndex);
+ const edits=easyLadderEdits[s.rowIndex]||{};
+ const active=new Set(easyLadderFields(row).filter(f=>selection[f.key] && String(Object.prototype.hasOwnProperty.call(edits,f.key)?edits[f.key]:f.value).trim()).map(f=>f.key));
+ if(!active.size)return false;
+ if(s.type==='material')return active.has('material');
+ if(s.type==='peso')return active.has('capacity') && /(?:soportad|carga|capacidad)/i.test(String(s.label||s.value||s.source||''));
+ if(s.type==='dimensiones')return false; // Dimensiones puede contener medidas distintas de la altura.
+ const v=String(s.value||'').toLowerCase();
+ if(active.has('steps') && /(?:peldañ|pelda[nñ]|escalon|escalón)/i.test(v))return true;
+ if(active.has('height') && /altura\s*(?:de\s*trabajo|m[aá]xima|total|de\s*la\s*escalera)?\s*:/i.test(v))return true;
+ if(active.has('capacity') && /(?:peso\s*(?:m[aá]ximo\s*)?soportado|carga\s*m[aá]xima|capacidad\s*de\s*carga)\s*:/i.test(v))return true;
+ if(active.has('material') && /^material\s*:/i.test(v))return true;
+ if(active.has('ladderType') && /^(?:tipo\s*(?:de\s*escalera)?|escalera\s*tipo)\s*:/i.test(v))return true;
+ return false;
+}
 function detectEasySuggestions(scrollToModule=false){
  const manualSuggestions=easySuggestions.filter(s=>s&&s.manual);
  easySuggestions=[];
@@ -1304,6 +1474,10 @@ function detectEasySuggestions(scrollToModule=false){
   if(rowInfoValues.has('uso interior y exterior')) easySuggestions=easySuggestions.filter(x=>!(x.rowIndex===rowIndex&&x.type==='info'&&['uso interior','uso exterior'].includes(x.value.toLowerCase())));
   EASY_CARE_RULES.forEach(([rx,value])=>{const m=text.match(rx);const k='c|'+value.toLowerCase();if(m&&!seen.has(k)&&!easyArray(row,'Cuidados de Uso').includes(value)){seen.add(k);easySuggestions.push({type:'care',rowIndex,sku,value,source:m[0],status:'Sugerencia'});}});
 
+  if(isEasyLadder(row)){
+    const detected=easyLadderFields(row).filter(f=>f.value);
+    easySuggestions.push({type:'ladder',rowIndex,sku,value:'Franja visual para escaleras',source:detected.length?detected.map(f=>f.label+': '+f.value).join(' · '):'Sin atributos detectados: puedes agregar características manualmente',status:easyLadderApproved.has(rowIndex)?'Aplicado':'Sugerencia'});
+  }
   const dim=extractEasyDimensions(text);
   if(dim && !cleanTechnicalValue(get(row,['Dimensiones']))) easySuggestions.push({type:'dimensiones',rowIndex,sku,value:dim.value,source:dim.source,status:'Sugerencia'});
   const mat=extractEasyMaterial(text);
@@ -1316,12 +1490,21 @@ function detectEasySuggestions(scrollToModule=false){
    const exists=easySuggestions.some(s=>s.rowIndex===ms.rowIndex&&s.type===ms.type&&String(s.value).trim().toLowerCase()===String(ms.value).trim().toLowerCase());
    if(!exists) easySuggestions.push(ms);
  });
+ easySuggestions=easySuggestions.filter(s=>!easyLadderSuggestionIsDuplicated(s));
  renderEasySuggestions(); renderEasyQualityPanel();
  if(scrollToModule){setTimeout(()=>{const el=document.getElementById('easySuggestionsCard');if(el){el.scrollIntoView({behavior:'smooth',block:'start'});}},80);}
 }
 function applyEasySuggestion(i,silent=false){
  const s=easySuggestions[i];if(!s||s.status!=='Sugerencia')return;const row=excelRows[s.rowIndex];
- if(s.type==='dimensiones') row['Dimensiones']=cleanTechnicalValue(s.value);
+ if(s.type==='ladder') {
+  const sel=easyLadderSelection(s.rowIndex), edits=easyLadderEdits[s.rowIndex]||{};
+  if(!easyLadderFields(row).some(f=>sel[f.key]&&String(Object.prototype.hasOwnProperty.call(edits,f.key)?edits[f.key]:f.value).trim())){
+   if(!silent)alert('Selecciona al menos una característica con valor antes de aprobar.');
+   return;
+  }
+  easyLadderApproved.add(s.rowIndex);
+ }
+ else if(s.type==='dimensiones') row['Dimensiones']=cleanTechnicalValue(s.value);
  else if(s.type==='material') row['Material']=cleanTechnicalValue(s.value);
  else if(s.type==='peso') row[s.targetKey||'Peso']=cleanTechnicalValue(s.value);
  else if(s.type==='youtube') { if(!cleanYoutubeUrl(s.value)) return alert('Ingresa una URL válida de YouTube (youtube.com o youtu.be).'); const v=String(s.value).trim(); row['VideoYouTube']=v; row['Video YouTube']=v; row['YouTube']=v; }
@@ -1335,12 +1518,13 @@ function removeAppliedEasySuggestions(rowIndex){
  const base=easySuggestionBaselines.get(Number(rowIndex));
  if(!base) return alert('No fue posible recuperar el contenido original de esta ficha.');
  excelRows[Number(rowIndex)] = JSON.parse(JSON.stringify(base));
+ easyLadderApproved.delete(Number(rowIndex));
  easySuggestions.forEach(x=>{ if(x.rowIndex===Number(rowIndex)&&x.status==='Aplicado') x.status='Sugerencia'; });
  [...easySuggestionSelection].forEach(i=>{ if(easySuggestions[i]&&easySuggestions[i].rowIndex===Number(rowIndex)) easySuggestionSelection.delete(i); });
  renderEasySuggestions(); renderEasyQualityPanel(); updateTables();
 }
 function easySuggestionTypeLabel(type){
- const labels={info:'Característica',care:'Cuidado de Uso',dimensiones:'Dimensiones',material:'Material',peso:'Peso',youtube:'Video YouTube'};
+ const labels={ladder:'Franja de escaleras',info:'Característica',care:'Cuidado de Uso',dimensiones:'Dimensiones',material:'Material',peso:'Peso',youtube:'Video YouTube'};
  return labels[type]||type;
 }
 function toggleManualSuggestionForm(rowIndex){
@@ -1359,6 +1543,32 @@ function addManualEasySuggestion(rowIndex){
  const input=form.querySelector('input');
  const type=typeEl?typeEl.value:'info';
  let value=cleanTechnicalValue(input?input.value:'').trim();
+ // Los claims de escalera se agregan directamente a la franja, no como chips genéricos.
+ if(type.startsWith('ladder:')){
+   const row=excelRows[rowIndex];
+   if(!row || !isEasyLadder(row)) return alert('Esta opción solo está disponible para escaleras.');
+   const key=type.slice(7);
+   const field=easyLadderFields(row).find(f=>f.key===key);
+   if(!field) return;
+   if(!value) return alert('Escribe el valor de '+field.label+'.');
+   // Evitar interpretar distancias entre peldaños como cantidades.
+   if(key==='steps'){
+     const count=value.match(/^(\d{1,3})(?:\s*(?:peldaños?|peldanos?|escalones?))?$/i);
+     if(!count) return alert('Ingresa una cantidad de peldaños (por ejemplo: 6). No ingreses distancias en cm.');
+     value=count[1]+' peldaños';
+   }
+   if(!easySuggestionBaselines.has(rowIndex)) easySuggestionBaselines.set(rowIndex,JSON.parse(JSON.stringify(row)));
+   easyLadderSetValue(rowIndex,key,value);
+   easyLadderSetSelected(rowIndex,key,true);
+   easyLadderApproved.add(rowIndex);
+   const existing=easySuggestions.find(s=>s.rowIndex===rowIndex&&s.type==='ladder');
+   if(existing) existing.status='Aplicado';
+   if(input) input.value='';
+   form.style.display='none';
+   renderEasySuggestions();renderEasyQualityPanel();updateTables();
+   return;
+ }
+
  if(!value) return alert(type==='youtube' ? 'Pega un link de YouTube.' : 'Escribe el contenido de la sugerencia.');
  if(type==='youtube'){
    const embed=cleanYoutubeUrl(value);
@@ -1397,6 +1607,7 @@ function editEasySuggestion(i){
  if(!value) return alert('La sugerencia no puede quedar vacía.');
  const duplicate=easySuggestions.some((x,idx)=>idx!==i&&x.rowIndex===s.rowIndex&&x.type===s.type&&String(x.value).trim().toLowerCase()===value.toLowerCase()&&x.status!=='Ignorado');
  if(duplicate) return alert('Ya existe una sugerencia igual para esta ficha.');
+ if(s.type==='ladder')return alert('Edita cada atributo desde la franja después de aprobar la sugerencia.');
  const old=s.value;
  s.value=value;
  if(s.status==='Aplicado'){
@@ -1420,6 +1631,7 @@ function deleteEasySuggestion(i){
  const s=easySuggestions[i]; if(!s) return;
  const row=excelRows[s.rowIndex];
  if(s.status==='Aplicado'){
+   if(s.type==='ladder') easyLadderApproved.delete(s.rowIndex);
    if(s.type==='dimensiones' && cleanTechnicalValue(row['Dimensiones'])===cleanTechnicalValue(s.value)) row['Dimensiones']='';
    else if(s.type==='material' && cleanTechnicalValue(row['Material'])===cleanTechnicalValue(s.value)) row['Material']='';
    else if(s.type==='peso'){
@@ -1451,7 +1663,7 @@ function renderEasySuggestions(){
   const pending=easySuggestions.filter(x=>x.status==='Sugerencia').length;
   sum.innerHTML=`<div style="margin:8px 0 12px;font-size:12.5px;color:#475467;"><b>${pending}</b> sugerencia${pending===1?'':'s'} pendiente${pending===1?'':'s'}</div>`;
   if(!easySuggestions.length){box.innerHTML='<p>✅ No se detectaron sugerencias con el diccionario actual.</p>';return;}
-  const groups=[['dimensiones','↔ Dimensiones'],['material','▱ Material'],['peso','⚖ Peso'],['youtube','▶ Video YouTube'],['info','💡 Agregar Información Adicional'],['care','🧺 Agregar Cuidados de Uso']];
+  const groups=[['ladder','🪜 Franja de características · Escaleras'],['dimensiones','↔ Dimensiones'],['material','▱ Material'],['peso','⚖ Peso'],['youtube','▶ Video YouTube'],['info','💡 Agregar Información Adicional'],['care','🧺 Agregar Cuidados de Uso']];
   let html='';
   groups.forEach(([type,title])=>{
     const items=easySuggestions.map((s,i)=>({s,i})).filter(x=>x.s.type===type);
@@ -1466,7 +1678,11 @@ function renderEasySuggestions(){
       html+=`<div class="easy-sku-group"><div class="easy-sku-head"><div class="easy-sku-title">SKU ${escEasy(first.sku||'Sin SKU')} · ${arr.length} sugerencia${arr.length===1?'':'s'}</div>${hasApplied?`<button type="button" onclick="removeAppliedEasySuggestions(${ri})" style="margin-left:auto;padding:4px 9px;font-size:11px;line-height:1.2;border:1px solid #d0d5dd;border-radius:6px;background:#fff;color:#667085;cursor:pointer;" title="Revertir sugerencias aprobadas de esta ficha">↶ Eliminar sugerencias</button>`:''}</div><div class="easy-sku-body"><div class="easy-sug-grid">`;
       arr.forEach(({s,i})=>{
         const done=s.status!=='Sugerencia';
-        html+=`<div class="easy-sug-card" style="${done?'opacity:.72;':''}"><div class="easy-sug-select">${!done?`<input class="easy-sug-check" type="checkbox" ${easySuggestionSelection.has(i)?'checked':''} onchange="toggleEasySuggestionSelection(${i},this.checked)">`:''}<div><div class="easy-sug-value">${escEasy(cleanTechnicalValue(s.value))}</div><div class="easy-sug-source">${s.manual?'Manual':'Detectado'}: “${escEasy(cleanTechnicalValue(s.source))}”</div></div></div><div class="easy-sug-actions"><button type="button" class="easy-sug-action" style="border:1px solid #d0d5dd;background:#fff;color:#475467;" title="Editar sugerencia" aria-label="Editar sugerencia" onclick="editEasySuggestion(${i})">✎</button>${!done?`<button type="button" class="easy-sug-action easy-sug-ok" title="Aprobar" aria-label="Aprobar" onclick="applyEasySuggestion(${i})">✓</button><button type="button" class="easy-sug-action easy-sug-no" title="Rechazar" aria-label="Rechazar" onclick="ignoreEasySuggestion(${i})">✕</button>`:`${s.manual?`<button type="button" class="easy-sug-action easy-sug-no" title="Eliminar" aria-label="Eliminar" onclick="deleteEasySuggestion(${i})">×</button>`:''}<span class="easy-sug-status">${escEasy(s.status)}</span>`}</div></div>`;
+        if(s.type==='ladder'){
+          html+=`<div class="easy-sug-card" style="${done?'opacity:.85;':''}"><div class="easy-sug-select">${!done?`<input type="checkbox" class="easy-sug-check" ${easySuggestionSelection.has(i)?'checked':''} onchange="toggleEasySuggestionSelection(${i},this.checked)">`:''}<div><div class="easy-sug-value">Franja visual para escaleras</div><div class="easy-sug-source">Características disponibles: ${escEasy(s.source)}</div><div class="easy-sug-source">Estado: ${escEasy(s.status)} · Se incorporará solo al aprobar</div></div></div>${easyLadderSuggestionEditor(s.rowIndex)}<div class="easy-sug-actions">${!done?`<button type="button" class="easy-sug-action easy-ladder-action" onclick="applyEasySuggestion(${i})">✓ Agregar franja</button><button type="button" class="easy-sug-action easy-ladder-action" onclick="ignoreEasySuggestion(${i})">Ignorar</button>`:`<span class="easy-sug-status">${escEasy(s.status)}</span>`}</div></div>`;
+          return;
+        }
+        html+=`<div class="easy-sug-card style="${done?'opacity:.72;':''}"><div class="easy-sug-select">${!done?`<input class="easy-sug-check" type="checkbox" ${easySuggestionSelection.has(i)?'checked':''} onchange="toggleEasySuggestionSelection(${i},this.checked)">`:''}<div><div class="easy-sug-value">${escEasy(cleanTechnicalValue(s.value))}</div><div class="easy-sug-source">${s.manual?'Manual':'Detectado'}: “${escEasy(cleanTechnicalValue(s.source))}”</div></div></div><div class="easy-sug-actions"><button type="button" class="easy-sug-action" style="border:1px solid #d0d5dd;background:#fff;color:#475467;" title="Editar sugerencia" aria-label="Editar sugerencia" onclick="${s.type==='ladder'?`alert('Aprueba la franja y edita sus atributos desde la vista previa.')`:`editEasySuggestion(${i})`}">✎</button>${!done?`<button type="button" class="easy-sug-action easy-sug-ok" title="Aprobar" aria-label="Aprobar" onclick="applyEasySuggestion(${i})">✓</button><button type="button" class="easy-sug-action easy-sug-no" title="Rechazar" aria-label="Rechazar" onclick="ignoreEasySuggestion(${i})">✕</button>`:`${s.manual?`<button type="button" class="easy-sug-action easy-sug-no" title="Eliminar" aria-label="Eliminar" onclick="deleteEasySuggestion(${i})">×</button>`:''}<span class="easy-sug-status">${escEasy(s.status)}</span>`}</div></div>`;
       });
       html+='</div></div></div>';
     });
@@ -1488,6 +1704,91 @@ function applyEasyType(type){
 function buildEasyInfoChips(row){const info=easyArray(row,'Información Adicional');if(!info.length)return '';return `<div style='margin:8px 0 14px 0;'><div style='display:flex;flex-wrap:wrap;gap:7px;'>${info.map(v=>`<span style='display:inline-block;background:#fff8ed;border:1px solid #f2c48d;color:#9a4d00;border-radius:7px;padding:5px 9px;font-size:13px;'>${v}</span>`).join('')}</div></div>`;}
 function buildEasyCareChips(row){const care=easyArray(row,'Cuidados de Uso');if(!care.length)return '';return `<div style='margin:14px 0;'><div style='font-weight:700;margin-bottom:7px;color:#2c3e50;'>Cuidados de Uso</div><div style='display:flex;flex-wrap:wrap;gap:7px;'>${care.map(v=>`<span style='display:inline-block;background:#f5f7fa;border:1px solid #d9e0e7;color:#344054;border-radius:7px;padding:5px 9px;font-size:13px;'>${v}</span>`).join('')}</div></div>`;}
 
+// Edición visual de párrafos: se conserva el marcado HTML al guardar y exportar.
+const easyParagraphEdits = new Map();
+const easyParagraphOriginals = new Map();
+function easyDescriptionMarkup(row, index, raw) {
+  return easyParagraphEdits.has(index) ? easyParagraphEdits.get(index) : formatDescripcionHTML(raw);
+}
+// Herramientas de formato SEO: selección en negrita y bloque completo H3.
+function easyEditorSelection(index){
+  const root=document.getElementById('easyEditableDescription_'+index);
+  const sel=window.getSelection();
+  if(!root||!root.isContentEditable||!sel||!sel.rangeCount)return null;
+  const range=sel.getRangeAt(0);
+  if(!root.contains(range.commonAncestorContainer))return null;
+  return {root,sel,range};
+}
+function easyFormatStrong(index){
+  const state=easyEditorSelection(index);
+  if(!state||state.range.collapsed){alert('Selecciona el texto al que quieres agregar o quitar negrita.');return;}
+  const {root,sel,range}=state;
+  // El comando nativo alterna negrita: si la selección ya está marcada, la quita.
+  // También permite desmarcar solo una parte de un texto en negrita.
+  root.focus();
+  sel.removeAllRanges();sel.addRange(range);
+  document.execCommand('bold',false,null);
+  // El navegador puede generar <b>; normalizar a <strong> al guardar/exportar.
+}
+function easyNormalizedEditorHTML(el){
+  const clone=el.cloneNode(true);
+  clone.querySelectorAll('[contenteditable]').forEach(n=>n.removeAttribute('contenteditable'));
+  clone.querySelectorAll('script,style').forEach(n=>n.remove());
+  clone.querySelectorAll('b').forEach(n=>{
+    const strong=document.createElement('strong');
+    while(n.firstChild)strong.appendChild(n.firstChild);
+    n.replaceWith(strong);
+  });
+  return clone.innerHTML;
+}
+function easyFormatH3(index){
+  const state=easyEditorSelection(index);
+  if(!state){alert('Ubica el cursor dentro del texto que quieres convertir en título.');return;}
+  const {root,range}=state;
+  let node=range.startContainer.nodeType===3?range.startContainer.parentElement:range.startContainer;
+  while(node&&node.parentElement!==root)node=node.parentElement;
+  if(!node||node===root)return;
+  if(!/^(P|DIV|H2|H3|H4|H5|H6)$/i.test(node.tagName)){
+    alert('Selecciona un párrafo o título completo para aplicar H3.');return;
+  }
+  const isH3=node.tagName==='H3';
+  const replacement=document.createElement(isH3?'p':'h3');
+  replacement.innerHTML=node.innerHTML;
+  node.replaceWith(replacement);
+  const newRange=document.createRange();newRange.selectNodeContents(replacement);newRange.collapse(false);
+  const selection=window.getSelection();selection.removeAllRanges();selection.addRange(newRange);
+}
+function toggleEasyParagraphEdit(index) {
+  const el=document.getElementById('easyEditableDescription_'+index);
+  const btn=document.getElementById('easyEditDescriptionBtn_'+index);
+  const save=document.getElementById('easySaveDescriptionBtn_'+index);
+  const undo=document.getElementById('easyUndoDescriptionBtn_'+index);
+  if(!el)return;
+  if(!el.isContentEditable){
+    easyParagraphOriginals.set(index,el.innerHTML);
+    el.contentEditable='true'; el.classList.add('easy-text-editing');
+    btn.style.display='none';save.style.display='inline-block';undo.style.display='inline-block';const tools=document.getElementById('easyFormatTools_'+index);if(tools)tools.style.display='flex';
+    el.focus();
+  }
+}
+function saveEasyParagraphEdit(index){
+  const el=document.getElementById('easyEditableDescription_'+index);
+  if(!el)return;
+  // Retirar atributos propios del editor, sin alterar las etiquetas SEO originales.
+  easyParagraphEdits.set(index,easyNormalizedEditorHTML(el));
+  updateTables();
+}
+function cancelEasyParagraphEdit(index){
+  const el=document.getElementById('easyEditableDescription_'+index);
+  if(el&&easyParagraphOriginals.has(index))el.innerHTML=easyParagraphOriginals.get(index);
+  updateTables();
+}
+function syncEasyParagraphEdits(){
+  document.querySelectorAll('[id^="easyEditableDescription_"][contenteditable="true"]').forEach(el=>{
+    const index=Number(el.id.replace('easyEditableDescription_',''));
+    if(Number.isInteger(index)) easyParagraphEdits.set(index,easyNormalizedEditorHTML(el));
+  });
+}
 function updateTables() {
   renderEasyQualityPanel();
   const container = document.getElementById('tablesContainer');
@@ -1545,7 +1846,7 @@ function updateTables() {
 </div>
 <div id='easyManualSuggestionForm_${index}' style='display:none;align-items:center;gap:6px;flex-wrap:wrap;margin:8px 0;padding:8px;background:#fffaf4;border:1px solid #f3dfc7;border-radius:8px;'>
   <select style='font-size:12px;padding:6px 8px;border:1px solid #d0d5dd;border-radius:6px;background:#fff;'>
-    <option value='info'>Característica</option><option value='care'>Cuidado de Uso</option><option value='dimensiones'>Dimensiones</option><option value='material'>Material</option><option value='peso'>Peso</option><option value='youtube'>Video YouTube</option>
+    <option value='info'>Característica</option><option value='care'>Cuidado de Uso</option><option value='dimensiones'>Dimensiones</option><option value='material'>Material</option><option value='peso'>Peso</option><option value='youtube'>Video YouTube</option>${isEasyLadder(row)?`<optgroup label='🪜 Franja de escaleras'><option value='ladder:capacity'>Franja · Peso soportado</option><option value='ladder:height'>Franja · Altura</option><option value='ladder:material'>Franja · Material</option><option value='ladder:steps'>Franja · Peldaños</option><option value='ladder:ladderType'>Franja · Tipo</option></optgroup>`:''}
   </select>
   <input type='text' placeholder='Escribe la sugerencia' style='flex:1 1 180px;min-width:0;font-size:12px;padding:6px 8px;border:1px solid #d0d5dd;border-radius:6px;' onkeydown="if(event.key==='Enter'){event.preventDefault();addManualEasySuggestion(${index});}">
   <button type='button' onclick='addManualEasySuggestion(${index})' style='padding:6px 9px;font-size:11px;border:1px solid #ff7a00;border-radius:6px;background:#ff7a00;color:#fff;cursor:pointer;'>Agregar</button>
@@ -1558,20 +1859,20 @@ ${marca ? `<div style='margin:0 0 8px 0;font-size:15px;line-height:1.5;'>${marca
 ${buildEasyInfoChips(row)}
 ${guiaTallasRaw ? buildGuiaTallasButton(guiaTallasRaw) : ''}
 
-${descripcionProducto ? `<div style='margin:0 0 10px 0;background:transparent;color:#000;font-size:15px;padding:0;'>${formatDescripcionHTML(descripcionProducto)}</div>` : ''}
+${descripcionProducto ? `<div class='easy-description-edit-controls' style='display:flex;gap:6px;flex-wrap:wrap;margin:6px 0 8px;'><button type='button' id='easyEditDescriptionBtn_${index}' onclick='toggleEasyParagraphEdit(${index})' class='easy-preview-btn'>✏️ Editar texto</button><span id='easyFormatTools_${index}' style='display:none;gap:6px;align-items:center;flex-wrap:wrap;'><button type='button' class='easy-preview-btn' onmousedown='event.preventDefault()' onclick='easyFormatStrong(${index})' title='Selecciona texto para agregar o quitar negrita (strong)'><strong>B</strong> Negrita</button><button type='button' class='easy-preview-btn' onmousedown='event.preventDefault()' onclick='easyFormatH3(${index})' title='Agrega o quita el formato H3 del bloque actual'>H3 Título</button></span><button type='button' id='easySaveDescriptionBtn_${index}' onclick='saveEasyParagraphEdit(${index})' class='easy-preview-btn' style='display:none;'>✓ Guardar cambios</button><button type='button' id='easyUndoDescriptionBtn_${index}' onclick='cancelEasyParagraphEdit(${index})' class='easy-preview-btn' style='display:none;'>↶ Cancelar</button></div><div id='easyEditableDescription_${index}' style='margin:0 0 10px 0;background:transparent;color:#000;font-size:15px;padding:0;'>${easyDescriptionMarkup(row,index,descripcionProducto)}</div>` : ''}
 ${buildEasyCareChips(row)}
 ${botonHTML}
 `;
-    if (embedUrl) {
-      html += buildYoutubePreviewHtml(videoUrl);
-      html += buildEasyTechnicalStrip(row,index,true);
-    } else {
-      html += buildEasyTechnicalStrip(row,index,true);
-    }
+    // La franja técnica siempre antecede al video, en vista previa y exportación.
+    html += buildEasyTechnicalStrip(row,index,true);
+    if (embedUrl) html += buildYoutubePreviewHtml(videoUrl);
     html += `</div>`;
   });
   html += '</div>';
   container.innerHTML = removeEmptyFichaBlocks(html);
+  const count=document.getElementById('easyPreviewCount');
+  if(count)count.textContent=excelRows.length+' fichas cargadas';
+  setEasyPreviewColumns(easyPreviewColumns);
 }
 
 function cleanExportHtml(html) {
@@ -1587,6 +1888,7 @@ function cleanExportHtml(html) {
 }
 
 function exportHtmlToExcel(mode = 'all') {
+  syncEasyParagraphEdits();
   if (!excelRows.length) return alert('❌ No hay datos cargados para exportar.');
   const selectedMode = mode === 'selected';
   if(selectedMode && !exportSelection.size) return alert('☑️ Selecciona al menos una ficha para exportar.');
@@ -1636,15 +1938,13 @@ ${imgMarca ? `<div style='margin:0 0 8px 0;line-height:0;'><img src='${imgMarca}
 ${marca ? `<div style='margin:0 0 8px 0;font-size:15px;line-height:1.5;'>${marca}</div>` : ''}
 ${buildEasyInfoChips(row)}
 ${guiaTallasRaw ? buildGuiaTallasButton(guiaTallasRaw) : ''}
-${descripcionProducto ? `<div style='margin:0 0 10px 0;background:transparent;color:#000;font-size:15px;padding:0;'>${formatDescripcionHTML(descripcionProducto)}</div>` : ''}
+${descripcionProducto ? `<div style='margin:0 0 10px 0;background:transparent;color:#000;font-size:15px;padding:0;'>${easyDescriptionMarkup(row,rowIndex,descripcionProducto)}</div>` : ''}
 ${buildEasyCareChips(row)}
 ${botonHTML}`;
 
+    html += buildEasyTechnicalStrip(row);
     if (embedUrl) {
       html += `<div style='height:16px;line-height:0;font-size:0;clear:both;'>&nbsp;</div><div class='easy-video-responsive' style='position:relative;width:100%;max-width:100%;aspect-ratio:16 / 9;height:auto;box-sizing:border-box;margin:0;border-radius:12px;overflow:hidden;background:#000;clear:both;'><iframe src='${embedUrl}' title='Video YouTube' width='560' height='315' style='position:absolute;inset:0;width:100%;height:100%;max-width:100%;border:0;display:block;margin:0;padding:0;' referrerpolicy='strict-origin-when-cross-origin' allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share' allowfullscreen></iframe></div>`;
-      html += buildEasyTechnicalStrip(row);
-    } else {
-      html += buildEasyTechnicalStrip(row);
     }
 
     html += `</div>`;
@@ -1761,6 +2061,8 @@ function limpiarTodo() {
 
   // Reinicia completamente las sugerencias del archivo anterior.
   easySuggestions = [];
+  easyLadderApproved.clear();
+  Object.keys(easyLadderEdits).forEach(k=>delete easyLadderEdits[k]);
   easySuggestionSelection.clear();
   ['dimensiones','material','peso','info','care'].forEach(type => {
     easySuggestionOpenState[type] = true;
