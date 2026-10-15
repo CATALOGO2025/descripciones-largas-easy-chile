@@ -486,7 +486,7 @@ br.pre-h4{display:block;margin:0 0 0 0;}
   margin: 0 16px !important;
   align-self: center !important;
 }
-.easy-text-editing{outline:2px dashed #ff7a00;outline-offset:5px;border-radius:4px;min-height:30px;cursor:text;}
+.easy-text-editing{outline:2px dashed #cbd5e1;outline-offset:5px;border-radius:4px;min-height:30px;cursor:text;}
 .easy-text-editing p,.easy-text-editing h2,.easy-text-editing h3{cursor:text;}
 </style>
 <style>
@@ -894,7 +894,7 @@ function importExcel() {
     const workbook = XLSX.read(data, {type: 'array'});
     const sheet = workbook.Sheets[workbook.SheetNames[0]];
     excelRows = XLSX.utils.sheet_to_json(sheet, { defval: "", raw: false });
-    easyParagraphEdits.clear(); easyParagraphOriginals.clear();
+    easyParagraphEdits.clear(); easyParagraphOriginals.clear(); easyFieldEdits.clear();
     exportSelection.clear(); updateExportSelectionCount(); easySuggestionSelection.clear();
     easySuggestions=[]; easyLadderApproved.clear(); Object.keys(easyLadderEdits).forEach(k=>delete easyLadderEdits[k]); easySuggestionBaselines.clear(); const sc=document.getElementById('easySuggestionsCard'); if(sc) sc.style.display='none'; const qp=document.getElementById('qualityPanel'); if(qp){qp.style.display='none';qp.innerHTML='';}
     if (!excelRows.length) return alert('❌ No se encontraron filas en el Excel.');
@@ -1707,13 +1707,23 @@ function buildEasyCareChips(row){const care=easyArray(row,'Cuidados de Uso');if(
 // Edición visual de párrafos: se conserva el marcado HTML al guardar y exportar.
 const easyParagraphEdits = new Map();
 const easyParagraphOriginals = new Map();
+const easyFieldEdits = new Map();
+function easyFieldValue(index,field,fallback){return easyFieldEdits.has(index)&&easyFieldEdits.get(index)[field]!==undefined?easyFieldEdits.get(index)[field]:fallback;}
+function easyEditableField(index,field,html){return `<div id="easyEditField_${field}_${index}" data-easy-field="${field}" style="display:contents">${html}</div>`;}
+function easyFormatList(index){
+ const state=easyEditorSelection(index);
+ if(!state){alert('Ubica el cursor en el texto que deseas convertir en lista.');return;}
+ state.root.focus();document.execCommand('insertUnorderedList',false,null);
+}
+
 function easyDescriptionMarkup(row, index, raw) {
   return easyParagraphEdits.has(index) ? easyParagraphEdits.get(index) : formatDescripcionHTML(raw);
 }
 // Herramientas de formato SEO: selección en negrita y bloque completo H3.
 function easyEditorSelection(index){
-  const root=document.getElementById('easyEditableDescription_'+index);
   const sel=window.getSelection();
+  const anchor=sel&&sel.anchorNode;
+  const root=anchor&&(anchor.nodeType===1?anchor:anchor.parentElement)?.closest('[data-easy-active-editor="'+index+'"]');
   if(!root||!root.isContentEditable||!sel||!sel.rangeCount)return null;
   const range=sel.getRangeAt(0);
   if(!root.contains(range.commonAncestorContainer))return null;
@@ -1766,6 +1776,10 @@ function toggleEasyParagraphEdit(index) {
   if(!el)return;
   if(!el.isContentEditable){
     easyParagraphOriginals.set(index,el.innerHTML);
+    ['name','short','long'].forEach(field=>{
+      const target=field==='long'?el:document.getElementById('easyEditField_'+field+'_'+index);
+      if(target){target.contentEditable='true';target.setAttribute('data-easy-active-editor',index);target.classList.add('easy-text-editing');target.style.display='block';}
+    });
     el.contentEditable='true'; el.classList.add('easy-text-editing');
     btn.style.display='none';save.style.display='inline-block';undo.style.display='inline-block';const tools=document.getElementById('easyFormatTools_'+index);if(tools)tools.style.display='flex';
     el.focus();
@@ -1776,6 +1790,9 @@ function saveEasyParagraphEdit(index){
   if(!el)return;
   // Retirar atributos propios del editor, sin alterar las etiquetas SEO originales.
   easyParagraphEdits.set(index,easyNormalizedEditorHTML(el));
+  const fields={};
+  ['name','short'].forEach(field=>{const target=document.getElementById('easyEditField_'+field+'_'+index);if(target)fields[field]=easyNormalizedEditorHTML(target);});
+  easyFieldEdits.set(index,fields);
   updateTables();
 }
 function cancelEasyParagraphEdit(index){
@@ -1784,6 +1801,10 @@ function cancelEasyParagraphEdit(index){
   updateTables();
 }
 function syncEasyParagraphEdits(){
+  document.querySelectorAll('[data-easy-field][contenteditable="true"]').forEach(el=>{
+    const index=Number(el.id.split('_').pop());
+    if(Number.isInteger(index)){const fields=easyFieldEdits.get(index)||{};fields[el.dataset.easyField]=easyNormalizedEditorHTML(el);easyFieldEdits.set(index,fields);}
+  });
   document.querySelectorAll('[id^="easyEditableDescription_"][contenteditable="true"]').forEach(el=>{
     const index=Number(el.id.replace('easyEditableDescription_',''));
     if(Number.isInteger(index)) easyParagraphEdits.set(index,easyNormalizedEditorHTML(el));
@@ -1818,6 +1839,8 @@ function updateTables() {
       'Guía de Tallas','Guia de Tallas','Guía Tallas','Guia Tallas','Guía de Tallas (archivo)','Guia de Tallas (archivo)'
     ]);
 
+    const editedName=easyFieldValue(index,'name',descripcion);
+    const editedShort=easyFieldValue(index,'short',metaDescripcion.trim()?formatMetaDescripcion(metaDescripcion.trim()):'');
     const cta = metaDescripcion.trim(); // sin fallback
     const embedUrl = cleanYoutubeUrl(videoUrl);
     let botonHTML = '';
@@ -1837,12 +1860,12 @@ function updateTables() {
     <input type='checkbox' style='width:16px;height:16px;accent-color:#922b21;cursor:pointer;' ${exportSelection.has(index)?'checked':''} onchange='toggleExportSelection(${index}, this.checked)'> Exportar ficha
   </label>
 </div>
-<div style='display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-top:6px;'>
-  <div style='display:inline-block; background:#f4f6f7; color:#333; font-size:13px; padding:4px 10px; border-radius:6px;'>📦 SKU: ${sku}</div>
+<div style='display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-top:6px;margin-bottom:22px;'>
+  <div style='display:flex;align-items:center;gap:8px;flex-wrap:wrap;'><div style='display:inline-block; background:#f4f6f7; color:#333; font-size:13px; padding:4px 10px; border-radius:6px;'>📦 SKU: ${sku}</div>
   <div style='display:flex;align-items:center;gap:6px;flex-wrap:wrap;'>
-    ${easySuggestions.some(s=>s.rowIndex===index&&s.status==='Aplicado') ? `<button type='button' onclick='removeAppliedEasySuggestions(${index})' style='padding:4px 8px;font-size:11px;line-height:1.2;border:1px solid #d0d5dd;border-radius:6px;background:#fff;color:#667085;cursor:pointer;'>↶ Eliminar sugerencias</button>` : ''}
-    <button type='button' onclick='toggleManualSuggestionForm(${index})' style='padding:4px 8px;font-size:11px;line-height:1.2;border:1px solid #ff7a00;border-radius:6px;background:#fff7ed;color:#b54708;cursor:pointer;'>＋ Agregar sugerencia</button>
-  </div>
+    ${easySuggestions.some(s=>s.rowIndex===index&&s.status==='Aplicado') ? `<button type='button' onclick='removeAppliedEasySuggestions(${index})' style='padding:4px 8px;font-size:11px;line-height:1.2;border:1px solid #f4aaaa;border-radius:6px;background:#fff0f0;color:#b42318;cursor:pointer;'>↶ Eliminar sugerencias</button>` : ''}
+    <button type='button' onclick='toggleManualSuggestionForm(${index})' style='padding:4px 8px;font-size:11px;line-height:1.2;border:1px solid #68c995;border-radius:6px;background:#e8f8ef;color:#137a42;cursor:pointer;'>＋ Agregar sugerencia</button>
+  </div></div>
 </div>
 <div id='easyManualSuggestionForm_${index}' style='display:none;align-items:center;gap:6px;flex-wrap:wrap;margin:8px 0;padding:8px;background:#fffaf4;border:1px solid #f3dfc7;border-radius:8px;'>
   <select style='font-size:12px;padding:6px 8px;border:1px solid #d0d5dd;border-radius:6px;background:#fff;'>
@@ -1852,14 +1875,15 @@ function updateTables() {
   <button type='button' onclick='addManualEasySuggestion(${index})' style='padding:6px 9px;font-size:11px;border:1px solid #ff7a00;border-radius:6px;background:#ff7a00;color:#fff;cursor:pointer;'>Agregar</button>
 </div>
 ${buildManualSuggestionControls(index)}
-<h2 style='margin:0 0 8px 0;color:#2c3e50;font-size:22px;line-height:1.25;'>${descripcion}</h2>
-${cta ? formatMetaDescripcion(cta) : ''}
+<div style='display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:0 0 8px 0;'><h2 style='margin:0;color:#2c3e50;font-size:22px;line-height:1.25;'>${easyEditableField(index,'name',easyFieldValue(index,'name',descripcion))}</h2><button type='button' id='easyEditDescriptionBtn_${index}' onclick='toggleEasyParagraphEdit(${index})' class='easy-preview-btn' title='Editar nombre, descripción corta y larga'>✏️ Editar texto</button></div>
+<div class='easy-description-edit-controls' style='display:flex;gap:6px;flex-wrap:wrap;margin:6px 0 8px;'><span id='easyFormatTools_${index}' style='display:none;gap:6px;align-items:center;flex-wrap:wrap;'><span style='font-size:12px;color:#667085;'>Selecciona texto en cualquiera de los tres campos:</span><button type='button' class='easy-preview-btn' onmousedown='event.preventDefault()' onclick='easyFormatStrong(${index})' title='Selecciona texto para agregar o quitar negrita (strong)'><strong>B</strong> Negrita</button><button type='button' class='easy-preview-btn' onmousedown='event.preventDefault()' onclick='easyFormatList(${index})' title='Insertar o quitar lista con viñetas ·'>• Lista</button><button type='button' class='easy-preview-btn' onmousedown='event.preventDefault()' onclick='easyFormatH3(${index})' title='Agrega o quita el formato H3 del bloque actual'>H3</button></span><button type='button' id='easySaveDescriptionBtn_${index}' onclick='saveEasyParagraphEdit(${index})' class='easy-preview-btn' style='display:none;'>Guardar</button><button type='button' id='easyUndoDescriptionBtn_${index}' onclick='cancelEasyParagraphEdit(${index})' class='easy-preview-btn' style='display:none;'>Cancelar</button></div>
+${easyEditableField(index,'short',easyFieldValue(index,'short',cta ? formatMetaDescripcion(cta) : ''))}
 ${imgMarca ? `<div style='margin:0 0 8px 0;line-height:0;'><img src='${imgMarca}' alt='Imagen de Marca' style='max-height:40px;height:auto;width:auto;display:block;'></div>` : ''}
 ${marca ? `<div style='margin:0 0 8px 0;font-size:15px;line-height:1.5;'>${marca}</div>` : ''}
 ${buildEasyInfoChips(row)}
 ${guiaTallasRaw ? buildGuiaTallasButton(guiaTallasRaw) : ''}
 
-${descripcionProducto ? `<div class='easy-description-edit-controls' style='display:flex;gap:6px;flex-wrap:wrap;margin:6px 0 8px;'><button type='button' id='easyEditDescriptionBtn_${index}' onclick='toggleEasyParagraphEdit(${index})' class='easy-preview-btn'>✏️ Editar texto</button><span id='easyFormatTools_${index}' style='display:none;gap:6px;align-items:center;flex-wrap:wrap;'><button type='button' class='easy-preview-btn' onmousedown='event.preventDefault()' onclick='easyFormatStrong(${index})' title='Selecciona texto para agregar o quitar negrita (strong)'><strong>B</strong> Negrita</button><button type='button' class='easy-preview-btn' onmousedown='event.preventDefault()' onclick='easyFormatH3(${index})' title='Agrega o quita el formato H3 del bloque actual'>H3 Título</button></span><button type='button' id='easySaveDescriptionBtn_${index}' onclick='saveEasyParagraphEdit(${index})' class='easy-preview-btn' style='display:none;'>✓ Guardar cambios</button><button type='button' id='easyUndoDescriptionBtn_${index}' onclick='cancelEasyParagraphEdit(${index})' class='easy-preview-btn' style='display:none;'>↶ Cancelar</button></div><div id='easyEditableDescription_${index}' style='margin:0 0 10px 0;background:transparent;color:#000;font-size:15px;padding:0;'>${easyDescriptionMarkup(row,index,descripcionProducto)}</div>` : ''}
+${descripcionProducto ? `<div id='easyEditableDescription_${index}' style='margin:0 0 10px 0;background:transparent;color:#000;font-size:15px;padding:0;'>${easyDescriptionMarkup(row,index,descripcionProducto)}</div>` : ''}
 ${buildEasyCareChips(row)}
 ${botonHTML}
 `;
@@ -1932,8 +1956,8 @@ function exportHtmlToExcel(mode = 'all') {
     }
 
     let html = `<div style='margin-bottom:25px; background:#fff;'>
-<h2 style='margin:0 0 8px 0;color:#2c3e50;font-size:22px;line-height:1.25;'>${descripcion}</h2>
-${cta ? formatMetaDescripcion(cta) : ''}
+<h2 style='margin:0 0 8px 0;color:#2c3e50;font-size:22px;line-height:1.25;'>${editedName}</h2>
+${editedShort}
 ${imgMarca ? `<div style='margin:0 0 8px 0;line-height:0;'><img src='${imgMarca}' alt='Imagen de Marca' style='max-height:40px;height:auto;width:auto;display:block;'></div>` : ''}
 ${marca ? `<div style='margin:0 0 8px 0;font-size:15px;line-height:1.5;'>${marca}</div>` : ''}
 ${buildEasyInfoChips(row)}
