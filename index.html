@@ -777,6 +777,7 @@ img { max-width: 100%; height: auto; }
  .easy-ladder-strip .easy-ladder-value{white-space:normal!important}
 }
 </style>
+<style>div[id^="easyTextEditor_"][hidden]{display:none!important;}</style>
 </head>
 <!-- Video YouTube sincronizado desde index Easy de referencia funcional -->
 <body>
@@ -1796,6 +1797,43 @@ function applyEasyType(type){
 function buildEasyInfoChips(row){const info=easyArray(row,'Información Adicional');if(!info.length)return '';return `<div style='margin:8px 0 14px 0;'><div style='display:flex;flex-wrap:wrap;gap:7px;'>${info.map(v=>`<span style='display:inline-block;background:#fff8ed;border:1px solid #f2c48d;color:#9a4d00;border-radius:7px;padding:5px 9px;font-size:13px;'>${v}</span>`).join('')}</div></div>`;}
 function buildEasyCareChips(row){const care=easyArray(row,'Cuidados de Uso');if(!care.length)return '';return `<div style='margin:14px 0;'><div style='font-weight:700;margin-bottom:7px;color:#2c3e50;'>Cuidados de Uso</div><div style='display:flex;flex-wrap:wrap;gap:7px;'>${care.map(v=>`<span style='display:inline-block;background:#f5f7fa;border:1px solid #d9e0e7;color:#344054;border-radius:7px;padding:5px 9px;font-size:13px;'>${v}</span>`).join('')}</div></div>`;}
 
+const easyEditableTextFields = [
+ ['Nombre del producto',['Nombre del Producto','Nombre Producto','Producto']],
+ ['Descripción corta',['Meta Descripción','Meta Descripcion','Descripción corta','Descripcion corta']],
+ ['Descripción larga',['Descripción larga','Descripcion larga','Descripción Larga','Descripcion Larga','Descripción']]
+];
+function easyOpenTextEditor(index){
+ const bar=document.getElementById('easyTextEditor_'+index);if(!bar)return;
+ if(!bar.hidden){updateTables();return;}
+ bar.hidden=false;
+ bar.style.setProperty("display","block","important");
+ document.querySelectorAll('[data-easy-edit="'+index+'"]').forEach(el=>{el.dataset.originalHtml=el.innerHTML;el.contentEditable='true';el.style.outline='1px dashed #94a3b8';el.style.minHeight='24px';});
+ document.getElementById('easyName_'+index).focus();
+}
+function easyFormatText(index,kind){
+ const sel=window.getSelection();if(!sel||!sel.rangeCount)return;
+ const el=sel.anchorNode?.parentElement?.closest('[data-easy-edit]');if(!el||el.dataset.easyEdit!==String(index))return;
+ if(kind==='bold')document.execCommand('bold');
+ else if(kind==='list')document.execCommand('insertUnorderedList');
+ else document.execCommand('formatBlock',false,sel.anchorNode.parentElement.closest('h3')?'p':'h3');
+}
+function easyReadEdited(el){
+ function walk(n){if(n.nodeType===3)return n.textContent;const t=n.tagName;const v=Array.from(n.childNodes).map(walk).join('');if(t==='BR')return '\n';if(t==='B'||t==='STRONG')return '*'+v+'*';if(t==='H3')return '\n## '+v.replace(/^\*|\*$/g,'')+'\n';if(t==='LI')return '\n- '+v+'\n';if(['P','DIV','UL','OL'].includes(t))return v+'\n';return v;}
+ return Array.from(el.childNodes).map(walk).join('').replace(/\n{3,}/g,'\n\n').trim();
+}
+function easySaveTextEditor(index){
+ const row=excelRows[index];if(!row)return;const base=easySuggestionBaselines.get(index);
+ ['easyName_','easyShort_','easyLong_'].forEach((prefix,i)=>{const el=document.getElementById(prefix+index);if(!el||el.innerHTML===el.dataset.originalHtml)return;const keys=easyEditableTextFields[i][1],key=keys.find(k=>row[k]!==undefined&&row[k]!==null)||keys[0];const value=i===0?el.innerText.trim():easyReadEdited(el);if(value!==get(row,keys)){row[key]=value;if(base)base[key]=value;}});
+ // Refresh only pending suggestions for this SKU; preserve decisions for all other rows.
+ const previous=easySuggestions.slice(); const selected=[...easySuggestionSelection].map(i=>previous[i]).filter(Boolean);
+ detectEasySuggestions(false);
+ const fresh=easySuggestions.filter(x=>x.rowIndex===index&&x.status==='Sugerencia'&&!previous.some(p=>p.rowIndex===index&&p.status!=='Sugerencia'&&p.type===x.type&&p.value===x.value));
+ easySuggestions=previous.filter(x=>x.rowIndex!==index||x.status!=='Sugerencia').concat(fresh);
+ easySuggestionSelection.clear();easySuggestions.forEach((x,i)=>{if(selected.includes(x))easySuggestionSelection.add(i);});
+ renderEasySuggestions();updateTables();
+}
+function easyTextEditorMarkup(index){return `<div id="easyTextEditor_${index}" hidden style="display:none!important;margin:4px 0 10px;font-size:13px;color:#475569;">Selecciona texto en cualquiera de los tres campos: ${[['bold','Negrita'],['heading','H3'],['list','• Lista']].map(([k,t])=>`<button type="button" onmousedown="event.preventDefault()" onclick="easyFormatText(${index},'${k}')">${t}</button>`).join(' ')} <button type="button" onclick="easySaveTextEditor(${index})">Guardar</button> <button type="button" onclick="updateTables()">Cancelar</button></div>`;}
+
 function updateTables() {
   renderEasyQualityPanel();
   const container = document.getElementById('tablesContainer');
@@ -1860,8 +1898,9 @@ function updateTables() {
   <button type='button' onclick='addManualEasySuggestion(${index})' style='padding:6px 9px;font-size:11px;border:1px solid #ff7a00;border-radius:6px;background:#ff7a00;color:#fff;cursor:pointer;'>Agregar</button>
 </div>
 ${buildManualSuggestionControls(index)}
-<h2 style='margin:0 0 8px 0;color:#2c3e50;font-size:22px;line-height:1.25;'>${descripcion}</h2>
-${cta ? formatMetaDescripcion(cta) : ''}
+<div style="display:flex;align-items:center;gap:8px;margin:12px 0 8px;"><h2 id="easyName_${index}" data-easy-edit="${index}" style="margin:0;color:#2c3e50;font-size:22px;line-height:1.25;">${descripcion}</h2><button type="button" title="Editar textos" aria-label="Editar textos" onclick="easyOpenTextEditor(${index})" style="border:0;background:transparent;color:#64748b;font-size:22px;cursor:pointer;padding:2px 5px;">✎</button></div>
+${easyTextEditorMarkup(index)}
+<div id="easyShort_${index}" data-easy-edit="${index}">${cta ? formatMetaDescripcion(cta) : ''}</div>
 ${easyStripAt(row,index,'afterShort',true)}
 ${imgMarca ? `<div style='margin:0 0 8px 0;line-height:0;'><img src='${imgMarca}' alt='Imagen de Marca' style='max-height:40px;height:auto;width:auto;display:block;'></div>` : ''}
 ${marca ? `<div style='margin:0 0 8px 0;font-size:15px;line-height:1.5;'>${marca}</div>` : ''}
@@ -1869,7 +1908,7 @@ ${easyStripAt(row,index,'afterBrand',true)}
 ${buildEasyInfoChips(row)}
 ${guiaTallasRaw ? buildGuiaTallasButton(guiaTallasRaw) : ''}
 
-${descripcionProducto ? `<div style='margin:0 0 10px 0;background:transparent;color:#000;font-size:15px;padding:0;'>${formatDescripcionHTML(descripcionProducto)}</div>` : ''}
+<div id='easyLong_${index}' data-easy-edit='${index}' style='margin:0 0 10px 0;background:transparent;color:#000;font-size:15px;padding:0;'>${formatDescripcionHTML(descripcionProducto)}</div>
 ${easyStripAt(row,index,'afterLong',true)}
 ${buildEasyCareChips(row)}
 ${botonHTML}
